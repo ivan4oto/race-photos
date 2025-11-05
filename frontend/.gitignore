@@ -16,3 +16,6 @@ yarn-error.log*
 *.sln
 .DS_Store
 
+# Angular
+.angular/
+
