@@ -20,6 +20,16 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
+aws:
+  region: ${AWS_REGION:us-east-1}
+  s3:
+    bucket: ${AWS_S3_BUCKET:race-photos-test-bucket}
+    endpoint: ${AWS_S3_ENDPOINT:}
+    # Set true for LocalStack to use path-style URLs
+    path-style-enabled: ${AWS_S3_PATH_STYLE:false}
+  rekognition:
+    endpoint: ${AWS_REKOGNITION_ENDPOINT:}
+
 logging:
   level:
     root: INFO
