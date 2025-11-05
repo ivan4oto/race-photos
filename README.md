@@ -14,6 +14,15 @@ This repository contains two modules:
 - Run: `mvn spring-boot:run`
 - Health endpoint: `GET http://localhost:8080/api/health`
 
+### Database
+- Start Postgres: `docker compose up -d postgres`
+- Default connection (configured in `backend/src/main/resources/application.yml`):
+  - URL: `jdbc:postgresql://localhost:5432/racephotos`
+  - Username: `racephotos`
+  - Password: `secret`
+- Override via env vars when running the backend:
+  - `DB_URL`, `DB_USERNAME`, `DB_PASSWORD`
+
 ## Frontend (Angular)
 - Directory: `frontend/`
 - Install deps: `npm install`
@@ -23,6 +32,6 @@ This repository contains two modules:
 The dev server uses `frontend/proxy.conf.json` to forward API calls to the backend at `http://localhost:8080`.
 
 ## Notes
-- Backend uses Spring Boot 3.3.x with Web + Validation starters.
+- Backend uses Spring Boot 3.3.x with Web + Validation + Data JPA and PostgreSQL driver.
 - Frontend uses Angular 18 with standalone bootstrap and a minimal router setup.
 - Adjust package names, groupId, and versions as needed for your organization.
