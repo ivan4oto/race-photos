@@ -13,6 +13,9 @@ This repository contains two modules:
 - Directory: `backend/`
 - Run: `mvn spring-boot:run`
 - Health endpoint: `GET http://localhost:8080/api/health`
+ - Security: HTTP Basic; `/api/health` is public, all other endpoints require auth.
+   - Default creds (override via env): `BASIC_AUTH_USER=api`, `BASIC_AUTH_PASSWORD=changeit`
+   - Example: `curl -u api:changeit http://localhost:8080/your/secure/endpoint`
 
 ### Database
 - Start Postgres: `docker compose up -d postgres`
@@ -32,6 +35,6 @@ This repository contains two modules:
 The dev server uses `frontend/proxy.conf.json` to forward API calls to the backend at `http://localhost:8080`.
 
 ## Notes
-- Backend uses Spring Boot 3.3.x with Web + Validation + Data JPA and PostgreSQL driver.
+- Backend uses Spring Boot 3.3.x with Web, Security, Validation, Data JPA and PostgreSQL driver.
 - Frontend uses Angular 18 with standalone bootstrap and a minimal router setup.
 - Adjust package names, groupId, and versions as needed for your organization.

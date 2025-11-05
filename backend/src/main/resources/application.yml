@@ -8,6 +8,10 @@ spring:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/racephotos}
     username: ${DB_USERNAME:racephotos}
     password: ${DB_PASSWORD:secret}
+  security:
+    user:
+      name: ${BASIC_AUTH_USER:api}
+      password: ${BASIC_AUTH_PASSWORD:changeit}
   jpa:
     hibernate:
       ddl-auto: update
