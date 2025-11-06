@@ -1,0 +1,13 @@
+aws:
+  region: ${AWS_REGION:us-east-1}
+  s3:
+    endpoint: ${AWS_S3_ENDPOINT:http://localhost:4566}
+    path-style-enabled: ${AWS_S3_PATH_STYLE:true}
+    presign:
+      expiration-seconds: ${AWS_S3_PRESIGN_EXPIRATION_SECONDS:7200}
+  rekognition:
+    endpoint: ${AWS_REKOGNITION_ENDPOINT:http://localhost:4566}
+
+spring:
+  profiles:
+    active: e2e
