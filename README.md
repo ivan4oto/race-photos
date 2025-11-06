@@ -37,6 +37,25 @@ AWS_REKOGNITION_ENDPOINT=http://localhost:4566 \
 mvn -f backend/pom.xml spring-boot:run
 ```
 
+### Presigned Upload URLs API
+- Endpoint: `POST /api/s3/presigned-urls`
+- Auth: public (will be secured later)
+- Request body: JSON array of object names, e.g.:
+  `[
+    "photos/1.jpg",
+    "photos/2.jpg"
+  ]`
+- Response: array of `{ name, url }` entries:
+  `[
+    { "name": "photos/1.jpg", "url": "https://..." },
+    { "name": "photos/2.jpg", "url": "https://..." }
+  ]`
+- Config:
+  - Bucket (required): `aws.s3.bucket` (env `AWS_S3_BUCKET`)
+  - Presign expiration seconds: `aws.s3.presign.expiration-seconds` (env `AWS_S3_PRESIGN_EXPIRATION_SECONDS`, default `7200`)
+  - Region/endpoint as above; for LocalStack use the `e2e` profile or set endpoints explicitly.
+- Upload example (browser or CLI): perform a `PUT` to the `url` with the file bytes as body. No extra headers are required.
+
 ### Database
 - Start Postgres: `docker compose up -d postgres`
 - Default connection (configured in `backend/src/main/resources/application.yml`):

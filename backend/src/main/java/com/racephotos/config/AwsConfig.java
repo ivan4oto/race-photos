@@ -10,6 +10,7 @@ import software.amazon.awssdk.services.rekognition.RekognitionClientBuilder;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
 import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 import java.net.URI;
 import java.util.Optional;
@@ -53,6 +54,23 @@ public class AwsConfig {
                 .credentialsProvider(DefaultCredentialsProvider.create());
 
         Optional.ofNullable(rekEndpoint)
+                .filter(v -> !v.isBlank())
+                .map(URI::create)
+                .ifPresent(builder::endpointOverride);
+
+        return builder.build();
+    }
+
+    @Bean
+    public S3Presigner s3Presigner(
+            Region region,
+            @Value("${aws.s3.endpoint:}") String s3Endpoint
+    ) {
+        S3Presigner.Builder builder = S3Presigner.builder()
+                .region(region)
+                .credentialsProvider(DefaultCredentialsProvider.create());
+
+        Optional.ofNullable(s3Endpoint)
                 .filter(v -> !v.isBlank())
                 .map(URI::create)
                 .ifPresent(builder::endpointOverride);

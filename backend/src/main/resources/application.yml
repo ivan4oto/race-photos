@@ -27,6 +27,8 @@ aws:
     endpoint: ${AWS_S3_ENDPOINT:}
     # Set true for LocalStack to use path-style URLs
     path-style-enabled: ${AWS_S3_PATH_STYLE:false}
+    presign:
+      expiration-seconds: ${AWS_S3_PRESIGN_EXPIRATION_SECONDS:7200}
   rekognition:
     endpoint: ${AWS_REKOGNITION_ENDPOINT:}
 
