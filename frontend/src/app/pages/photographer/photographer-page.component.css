@@ -1,0 +1,7 @@
+.page { background: #ffffff; padding: 32px 16px; }
+.container { max-width: 900px; margin: 0 auto; }
+h1 { margin: 0 0 8px; font-size: clamp(26px, 4vw, 36px); }
+.lead { color: #4b5563; margin: 0 0 16px; }
+.steps { margin: 0; padding-left: 18px; line-height: 1.7; }
+.steps li { margin-bottom: 8px; }
+

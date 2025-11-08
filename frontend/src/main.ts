@@ -1,14 +1,35 @@
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideHttpClient } from '@angular/common/http';
-import { provideRouter, Routes } from '@angular/router';
+import { provideRouter, Routes, withInMemoryScrolling } from '@angular/router';
 import { AppComponent } from './app/app.component';
 
-const routes: Routes = [];
+const routes: Routes = [
+  {
+    path: '',
+    loadComponent: () => import('./app/landing/landing-page.component').then(m => m.LandingPageComponent),
+    title: 'Race Photos — Find and sell event photos'
+  },
+  {
+    path: 'photographer',
+    loadComponent: () => import('./app/pages/photographer/photographer-page.component').then(m => m.PhotographerPageComponent),
+    title: 'For Photographers — Race Photos'
+  },
+  {
+    path: 'participants',
+    loadComponent: () => import('./app/pages/participants/participants-page.component').then(m => m.ParticipantsPageComponent),
+    title: 'For Participants — Race Photos'
+  },
+  {
+    path: 'signin',
+    loadComponent: () => import('./app/pages/auth/signin-page.component').then(m => m.SignInPageComponent),
+    title: 'Sign in — Race Photos'
+  },
+  { path: '**', redirectTo: '' }
+];
 
 bootstrapApplication(AppComponent, {
   providers: [
     provideHttpClient(),
-    provideRouter(routes),
+    provideRouter(routes, withInMemoryScrolling({ anchorScrolling: 'enabled', scrollPositionRestoration: 'enabled' })),
   ],
 }).catch(err => console.error(err));
-
