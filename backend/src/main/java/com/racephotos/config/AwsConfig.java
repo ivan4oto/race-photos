@@ -19,7 +19,7 @@ import java.util.Optional;
 public class AwsConfig {
 
     @Bean
-    public Region awsRegion(@Value("${aws.region:us-east-1}") String region) {
+    public Region awsRegion(@Value("${aws.region:eu-central-1}") String region) {
         return Region.of(region);
     }
 

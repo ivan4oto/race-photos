@@ -1,0 +1,51 @@
+<section class="page">
+  <div class="container">
+    <header class="head">
+      <h1>Upload Event Photos</h1>
+      <p class="lead">Select multiple images, then start upload. We’ll show progress and any failures.</p>
+    </header>
+
+    <div class="controls">
+      <label class="btn primary">
+        <input type="file" multiple (change)="onPickFiles($event.target.files)" [attr.accept]="config.acceptedMimeTypes.join(',')" hidden>
+        Select photos
+      </label>
+      <button class="btn" (click)="startUpload()" [disabled]="isUploading() || !hasQueued()">Start upload</button>
+      <button class="btn" (click)="retryFailed()" [disabled]="isUploading() || errorCount() === 0">Retry failed</button>
+      <button class="btn" (click)="clearCompleted()" [disabled]="isUploading() || successCount() === 0">Clear completed</button>
+    </div>
+
+    <div class="summary">
+      <span><strong>{{ items().length }}</strong> files</span>
+      <span>•</span>
+      <span><strong>{{ successCount() }}</strong> success</span>
+      <span>•</span>
+      <span><strong>{{ errorCount() }}</strong> failed</span>
+      <span>•</span>
+      <span><strong>{{ skippedCount() }}</strong> skipped</span>
+    </div>
+
+    <div class="list" *ngIf="items().length > 0">
+      <div class="row" *ngFor="let item of items()">
+        <div class="meta">
+          <div class="name" [title]="item.key">{{ item.name }}</div>
+          <div class="sub">{{ (item.size/1024/1024) | number:'1.1-1' }} MB</div>
+        </div>
+        <div class="status">
+          <ng-container [ngSwitch]="item.status">
+            <span *ngSwitchCase="'queued'" class="badge">Queued</span>
+            <span *ngSwitchCase="'presigning'" class="badge">Presigning</span>
+            <span *ngSwitchCase="'uploading'" class="badge">Uploading {{ item.progress }}%</span>
+            <span *ngSwitchCase="'success'" class="badge ok">Success</span>
+            <span *ngSwitchCase="'error'" class="badge err">Error</span>
+            <span *ngSwitchCase="'skipped'" class="badge warn">Skipped</span>
+          </ng-container>
+          <div class="reason" *ngIf="item.errorMessage || item.skippedReason">{{ item.errorMessage || item.skippedReason }}</div>
+        </div>
+        <div class="progress" *ngIf="item.status === 'uploading' || item.status === 'success'">
+          <div class="bar" [style.width.%]="item.progress"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

@@ -2,6 +2,7 @@ import { bootstrapApplication } from '@angular/platform-browser';
 import { provideHttpClient } from '@angular/common/http';
 import { provideRouter, Routes, withInMemoryScrolling } from '@angular/router';
 import { AppComponent } from './app/app.component';
+import { provideApiBaseUrl } from './app/shared/api.config';
 
 const routes: Routes = [
   {
@@ -13,6 +14,11 @@ const routes: Routes = [
     path: 'photographer',
     loadComponent: () => import('./app/pages/photographer/photographer-page.component').then(m => m.PhotographerPageComponent),
     title: 'For Photographers — Race Photos'
+  },
+  {
+    path: 'photographer/upload',
+    loadComponent: () => import('./app/pages/photographer-upload/upload-page.component').then(m => m.UploadPageComponent),
+    title: 'Upload — Race Photos'
   },
   {
     path: 'participants',
@@ -31,5 +37,6 @@ bootstrapApplication(AppComponent, {
   providers: [
     provideHttpClient(),
     provideRouter(routes, withInMemoryScrolling({ anchorScrolling: 'enabled', scrollPositionRestoration: 'enabled' })),
+    provideApiBaseUrl(),
   ],
 }).catch(err => console.error(err));
