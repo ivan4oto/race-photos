@@ -122,6 +122,6 @@ export class UploadPageComponent {
       .toLowerCase()
       .replace(/\s+/g, '-')
       .replace(/[^a-z0-9._-]/g, '');
-    return `incoming/photographers/anon/unspecified/${yyyy}/${mm}/${dd}/${uuid}-${safeOriginal}`;
+    return `in/2/johndoe/raw/${safeOriginal}`;
   }
 }
