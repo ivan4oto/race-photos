@@ -61,6 +61,22 @@ Manual AWS setup you must perform once per environment:
 
 Once an upload-notification trigger is wired, call the service with the event identifier plus the S3 keys that were uploaded to keep Rekognition and DynamoDB synchronized.
 
+### Face Search API
+- Endpoint: `POST /api/faces/search`
+- Auth: HTTP Basic (same as the rest of the API except health/presign).
+- Request body:
+  ```json
+  {
+    "eventId": "race-2024",
+    "photoKey": "photos/athlete-1.jpg"
+  }
+  ```
+- Response: returns the probe key plus a list of other S3 keys for that event that contain the same person, based on Rekognition’s `SearchFacesByImage` matches filtered through DynamoDB metadata. Each match includes the faceId, similarity score, Rekognition confidence, and bounding box if available.
+- Config knobs (see `application.yml`):
+  - `aws.rekognition.search.max-faces` (default 50) – cap on Rekognition matches inspected.
+  - `aws.rekognition.search.threshold` (default 90) – Rekognition similarity threshold.
+- Behavior: the probe photo itself is excluded from the results; duplicates per photo key are collapsed keeping the highest similarity score.
+
 ### Presigned Upload URLs API
 - Endpoint: `POST /api/s3/presigned-urls`
 - Auth: public (will be secured later)

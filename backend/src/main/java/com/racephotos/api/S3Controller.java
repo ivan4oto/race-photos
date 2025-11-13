@@ -8,6 +8,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -32,22 +33,14 @@ public class S3Controller {
         return urls;
     }
 
+//    Todo: This is a test endpoint, we should move this to a upload based trigger
     @PostMapping(value = "/index-faces")
     public String indexFaces(@RequestBody List<String> objectKeys) {
-        List<String> keys = List.of(
-                "in/2/johndoe/raw/1.jpg",
-                "in/2/johndoe/raw/2.jpg",
-                "in/2/johndoe/raw/3.jpg",
-                "in/2/johndoe/raw/4.jpg",
-                "in/2/johndoe/raw/5.jpg",
-                "in/2/johndoe/raw/6.jpg",
-                "in/2/johndoe/raw/7.jpg",
-                "in/2/johndoe/raw/8.jpg",
-                "in/2/johndoe/raw/9.jpg",
-                "in/2/johndoe/raw/10.jpg"
-
-        );
-        faceIndexingService.indexFacesForEvent("2", keys);
+        List<String> keys = new ArrayList<>();
+        for (int i = 1; i < 292; i++) {
+            keys.add("in/3/testgochev/raw/" + i + ".jpg");
+        };
+        faceIndexingService.indexFacesForEvent("3", keys);
         return "OK";
     }
 }

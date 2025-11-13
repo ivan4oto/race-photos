@@ -3,3 +3,12 @@ POST http://localhost:8080/api/s3/index-faces
 Content-Type: application/json
 
 []
+
+### Send POST request with json body
+POST http://localhost:8080/api/faces/search
+Content-Type: application/json
+
+{
+  "eventId": "3",
+  "photoKey": "fresha2.png"
+}

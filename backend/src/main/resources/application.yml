@@ -32,6 +32,9 @@ aws:
   rekognition:
     collection-id: ${AWS_REKOGNITION_COLLECTION_ID:race-photos-face-collection}
     endpoint: ${AWS_REKOGNITION_ENDPOINT:}
+    search:
+      max-faces: ${AWS_REKOGNITION_SEARCH_MAX_FACES:50}
+      threshold: ${AWS_REKOGNITION_SEARCH_THRESHOLD:85}
   dynamodb:
     table: ${AWS_DYNAMODB_FACE_TABLE:race-photos-face-metadata}
     endpoint: ${AWS_DYNAMODB_ENDPOINT:}
