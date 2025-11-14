@@ -37,6 +37,46 @@ AWS_REKOGNITION_ENDPOINT=http://localhost:4566 \
 mvn -f backend/pom.xml spring-boot:run
 ```
 
+### Face Indexing Service
+- Service bean: `FaceIndexingService` (backend module).
+- Entry point `indexFacesForEvent(eventId, List<objectKeys>)` should be invoked once uploads finish (e.g., by the eventual S3 event handler).
+- For each provided S3 object the service makes sure the Rekognition collection exists, runs `IndexFaces`, and stores `faceId → eventId, bucket, photoKey, bounding box, confidence, timestamps` rows in DynamoDB for later lookups.
+
+Key configuration (see `backend/src/main/resources/application.yml`):
+- `aws.rekognition.collection-id` (default `race-photos-face-collection`).
+- `aws.dynamodb.table` (default `race-photos-face-metadata`).
+- `aws.dynamodb.endpoint` (optional; useful for LocalStack).
+
+Manual AWS setup you must perform once per environment:
+1. **IAM permissions** for the backend's runtime role/user: `rekognition:*Collection`, `rekognition:IndexFaces`, `s3:GetObject` on the upload bucket, and `dynamodb:PutItem` on the metadata table.
+2. **DynamoDB table** with `faceId` (String) as the partition key. Example CLI:
+   ```bash
+   aws dynamodb create-table \
+     --table-name race-photos-face-metadata \
+     --attribute-definitions AttributeName=faceId,AttributeType=S \
+     --key-schema AttributeName=faceId,KeyType=HASH \
+     --billing-mode PAY_PER_REQUEST
+   ```
+3. (Optional) Point the service to LocalStack by setting `AWS_DYNAMODB_ENDPOINT`, `AWS_REKOGNITION_ENDPOINT`, and reusing the same S3 bucket configuration.
+
+Once an upload-notification trigger is wired, call the service with the event identifier plus the S3 keys that were uploaded to keep Rekognition and DynamoDB synchronized.
+
+### Face Search API
+- Endpoint: `POST /api/faces/search`
+- Auth: HTTP Basic (same as the rest of the API except health/presign).
+- Request body:
+  ```json
+  {
+    "eventId": "race-2024",
+    "photoKey": "photos/athlete-1.jpg"
+  }
+  ```
+- Response: returns the probe key plus a list of other S3 keys for that event that contain the same person, based on Rekognition’s `SearchFacesByImage` matches filtered through DynamoDB metadata. Each match includes the faceId, similarity score, Rekognition confidence, and bounding box if available.
+- Config knobs (see `application.yml`):
+  - `aws.rekognition.search.max-faces` (default 50) – cap on Rekognition matches inspected.
+  - `aws.rekognition.search.threshold` (default 90) – Rekognition similarity threshold.
+- Behavior: the probe photo itself is excluded from the results; duplicates per photo key are collapsed keeping the highest similarity score.
+
 ### Presigned Upload URLs API
 - Endpoint: `POST /api/s3/presigned-urls`
 - Auth: public (will be secured later)

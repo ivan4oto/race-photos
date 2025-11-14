@@ -113,6 +113,8 @@ export class UploadPageComponent {
 
   private generateKey(originalName: string): string {
     // TODO: generate date based on file/photo metadata
+    const raceId = '3';
+    const authorName = 'testgochev';
     const now = new Date();
     const yyyy = now.getFullYear();
     const mm = String(now.getMonth() + 1).padStart(2, '0');
@@ -122,6 +124,6 @@ export class UploadPageComponent {
       .toLowerCase()
       .replace(/\s+/g, '-')
       .replace(/[^a-z0-9._-]/g, '');
-    return `incoming/photographers/anon/unspecified/${yyyy}/${mm}/${dd}/${uuid}-${safeOriginal}`;
+    return `in/${raceId}/${authorName}/raw/${safeOriginal}`;
   }
 }

@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClientBuilder;
 import software.amazon.awssdk.services.rekognition.RekognitionClient;
 import software.amazon.awssdk.services.rekognition.RekognitionClientBuilder;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -71,6 +73,23 @@ public class AwsConfig {
                 .credentialsProvider(DefaultCredentialsProvider.create());
 
         Optional.ofNullable(s3Endpoint)
+                .filter(v -> !v.isBlank())
+                .map(URI::create)
+                .ifPresent(builder::endpointOverride);
+
+        return builder.build();
+    }
+
+    @Bean
+    public DynamoDbClient dynamoDbClient(
+            Region region,
+            @Value("${aws.dynamodb.endpoint:}") String dynamoEndpoint
+    ) {
+        DynamoDbClientBuilder builder = DynamoDbClient.builder()
+                .region(region)
+                .credentialsProvider(DefaultCredentialsProvider.create());
+
+        Optional.ofNullable(dynamoEndpoint)
                 .filter(v -> !v.isBlank())
                 .map(URI::create)
                 .ifPresent(builder::endpointOverride);

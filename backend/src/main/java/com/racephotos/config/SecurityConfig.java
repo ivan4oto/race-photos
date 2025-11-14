@@ -23,6 +23,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(HttpMethod.GET, "/api/health").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/s3/presigned-urls").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/s3/index-faces").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/faces/search").permitAll()
                 .anyRequest().authenticated()
             )
             .httpBasic(Customizer.withDefaults());
