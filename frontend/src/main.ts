@@ -26,6 +26,11 @@ const routes: Routes = [
     title: 'For Participants — Race Photos'
   },
   {
+    path: 'participants/face-search-test',
+    loadComponent: () => import('./app/pages/participants/face-search-test.component').then(m => m.FaceSearchTestComponent),
+    title: 'Face Search Test — Race Photos'
+  },
+  {
     path: 'signin',
     loadComponent: () => import('./app/pages/auth/signin-page.component').then(m => m.SignInPageComponent),
     title: 'Sign in — Race Photos'

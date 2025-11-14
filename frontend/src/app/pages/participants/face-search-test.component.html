@@ -1,0 +1,45 @@
+<section class="page">
+  <div class="container">
+    <h1>Face Search Test</h1>
+    <p class="lead">Send a probe image and inspect the matches returned by Rekognition.</p>
+
+    <form class="search-form" (ngSubmit)="search()" [formGroup]="form">
+      <label>
+        Race ID (eventId)
+        <input formControlName="raceId" placeholder="e.g. race-2024-berlin" />
+      </label>
+      <label>
+        Photo key
+        <input formControlName="photoKey" placeholder="uploads/user123/selfie.jpg" />
+      </label>
+      <button type="submit" [disabled]="loading">Search</button>
+    </form>
+
+    <div class="status" *ngIf="loading">Searching…</div>
+    <div class="status error" *ngIf="!loading && errorMessage">{{ errorMessage }}</div>
+
+    <div class="results" *ngIf="matches.length">
+      <div class="match-card" *ngFor="let match of matches">
+        <button class="match-image" type="button" (click)="openPreview(match)">
+          <img [src]="buildImageUrl(match.photoKey)" [alt]="match.photoKey" />
+        </button>
+        <div class="meta">
+          <div class="photo-key">{{ match.photoKey }}</div>
+          <div>Similarity: {{ match.similarity | number:'1.0-2' }}%</div>
+          <div *ngIf="match.confidence">Confidence: {{ match.confidence | number:'1.0-2' }}%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<div class="preview-backdrop" *ngIf="selectedMatch" (click)="closePreview()">
+  <div class="preview-modal" (click)="$event.stopPropagation()">
+    <img [src]="buildImageUrl(selectedMatch!.photoKey)" [alt]="selectedMatch!.photoKey" />
+    <div class="preview-actions">
+      <div>{{ selectedMatch!.photoKey }}</div>
+      <button type="button" (click)="closePreview()">Close</button>
+    </div>
+  </div>
+</div>
