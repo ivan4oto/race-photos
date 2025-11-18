@@ -36,6 +36,11 @@ const routes: Routes = [
     title: 'Create Photographer — Race Photos'
   },
   {
+    path: 'admin/events/new',
+    loadComponent: () => import('./app/pages/admin/events/event-create-page.component').then(m => m.EventCreatePageComponent),
+    title: 'Create Event — Race Photos'
+  },
+  {
     path: 'signin',
     loadComponent: () => import('./app/pages/auth/signin-page.component').then(m => m.SignInPageComponent),
     title: 'Sign in — Race Photos'

@@ -1,0 +1,186 @@
+<section class="page">
+  <div class="hero">
+    <div class="hero-body">
+      <p class="eyebrow">Admin • Events</p>
+      <h1>Launch a new event experience</h1>
+      <p class="lead">
+        Configure metadata, pricing defaults, and participant access in one pass. Once the backend
+        endpoint exists this flow will save the event directly in the database.
+      </p>
+    </div>
+  </div>
+
+  <div class="container">
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="alert success" *ngIf="submissionSuccess()">{{ submissionSuccess() }}</div>
+      <div class="alert error" *ngIf="submissionError()">{{ submissionError() }}</div>
+
+      <section class="card">
+        <header>
+          <h2>Core details</h2>
+          <p>Identity, scheduling, and location details that power discovery.</p>
+        </header>
+        <div class="grid">
+          <label>
+            <span>Slug *</span>
+            <input type="text" formControlName="slug" placeholder="e.g. berlin-marathon-2025" autocomplete="off">
+            <small *ngIf="controlInvalid('slug')">Lowercase, dashes only; required.</small>
+          </label>
+          <label>
+            <span>Name *</span>
+            <input type="text" formControlName="name" placeholder="BMW Berlin Marathon 2025">
+            <small *ngIf="controlInvalid('name')">Name is required.</small>
+          </label>
+          <label>
+            <span>Status *</span>
+            <select formControlName="status">
+              <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
+            </select>
+          </label>
+          <label>
+            <span>Organizer</span>
+            <input type="text" formControlName="organizerName" placeholder="SCC EVENTS">
+          </label>
+          <label>
+            <span>Registration provider</span>
+            <input type="text" formControlName="registrationProvider" placeholder="Race Roster, Njuko, etc.">
+          </label>
+          <label>
+            <span>Timezone</span>
+            <input type="text" formControlName="timezone" placeholder="Europe/Berlin">
+          </label>
+          <label>
+            <span>Start time</span>
+            <input type="datetime-local" formControlName="startTime">
+          </label>
+          <label>
+            <span>End time</span>
+            <input type="datetime-local" formControlName="endTime">
+          </label>
+          <label>
+            <span>Location name</span>
+            <input type="text" formControlName="locationName" placeholder="Tiergarten Start Village">
+          </label>
+          <label>
+            <span>City</span>
+            <input type="text" formControlName="locationCity" placeholder="Berlin">
+          </label>
+          <label>
+            <span>State/Region</span>
+            <input type="text" formControlName="locationState" placeholder="Berlin">
+          </label>
+          <label>
+            <span>Country</span>
+            <input type="text" formControlName="locationCountry" placeholder="Germany">
+          </label>
+          <label>
+            <span>Cover image key</span>
+            <input type="text" formControlName="coverImageKey" placeholder="media/events/berlin/cover.jpg">
+          </label>
+        </div>
+        <label class="full">
+          <span>Description</span>
+          <textarea formControlName="description" rows="4" placeholder="Tell photographers and participants what makes this race special."></textarea>
+        </label>
+      </section>
+
+      <section class="card">
+        <header>
+          <h2>Platform & ingestion</h2>
+          <p>Wire the event into S3 + Rekognition, plus fine tune commerce knobs.</p>
+        </header>
+        <div class="grid">
+          <label>
+            <span>Vector collection ID</span>
+            <input type="text" formControlName="vectorCollectionId" placeholder="rekognition-collection-id">
+          </label>
+          <label>
+            <span>Upload prefix</span>
+            <input type="text" formControlName="uploadPrefix" placeholder="in/events/berlin-2025/raw">
+          </label>
+          <label>
+            <span>Platform commission</span>
+            <input type="number" formControlName="platformCommissionRate" min="0" max="1" step="0.01" placeholder="0.25">
+            <small>0.25 = 25% platform share</small>
+          </label>
+        </div>
+
+        <div class="toggles">
+          <label class="toggle">
+            <input type="checkbox" formControlName="watermarkingEnabled">
+            <span class="slider"></span>
+            <div>
+              <strong>Watermark previews</strong>
+              <p>Enable watermarks for participant-facing galleries.</p>
+            </div>
+          </label>
+          <label class="toggle">
+            <input type="checkbox" formControlName="autoPublishMatches">
+            <span class="slider"></span>
+            <div>
+              <strong>Auto publish matches</strong>
+              <p>Skip manual review once Rekognition finds faces.</p>
+            </div>
+          </label>
+        </div>
+
+        <div class="subcard" formGroupName="defaultPricing">
+          <div class="subcard-head">
+            <h3>Default pricing</h3>
+            <p>Reference rates used unless overridden at photo level.</p>
+          </div>
+          <div class="grid">
+            <label>
+              <span>Price per photo</span>
+              <input type="number" formControlName="pricePerPhoto" min="0" step="0.01" placeholder="29.00">
+            </label>
+            <label>
+              <span>Bundle price</span>
+              <input type="number" formControlName="bundlePrice" min="0" step="0.01" placeholder="129.00">
+            </label>
+            <label>
+              <span>Bundle size</span>
+              <input type="number" formControlName="bundleSize" min="1" step="1" placeholder="10">
+            </label>
+            <label>
+              <span>Currency</span>
+              <input type="text" formControlName="currencyCode" maxlength="3" placeholder="EUR">
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <header>
+          <h2>Access control</h2>
+          <p>Define how we prove a participant is eligible for this gallery.</p>
+        </header>
+        <div class="grid" formGroupName="accessPolicy">
+          <label>
+            <span>Eligibility mode *</span>
+            <select formControlName="mode">
+              <option *ngFor="let mode of eligibilityModes" [value]="mode">{{ mode }}</option>
+            </select>
+          </label>
+          <label>
+            <span>Eligibility provider</span>
+            <input type="text" formControlName="provider" placeholder="Roster import partner">
+          </label>
+        </div>
+        <label class="full">
+          <span>Eligibility configuration</span>
+          <textarea formControlName="configuration" rows="4" placeholder="JSON, YAML, or notes on how to fetch roster data."></textarea>
+        </label>
+        <label class="full">
+          <span>Participant message</span>
+          <textarea formControlName="participantMessage" rows="3" placeholder="Copy surfaced on the gallery (deadlines, codes, etc.)."></textarea>
+        </label>
+      </section>
+
+      <footer class="actions">
+        <button type="submit" [disabled]="!canSubmit()">Create event</button>
+        <p class="helper">Posts to <code>/admin/events</code> (dummy endpoint until backend ships).</p>
+      </footer>
+    </form>
+  </div>
+</section>
