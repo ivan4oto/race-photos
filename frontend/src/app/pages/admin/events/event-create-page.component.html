@@ -178,7 +178,7 @@
       </section>
 
       <footer class="actions">
-        <button type="submit" [disabled]="!canSubmit()">Create event</button>
+        <button type="submit" [disabled]="form.invalid || submitting()">Create event</button>
         <p class="helper">Posts to <code>/admin/events</code> (dummy endpoint until backend ships).</p>
       </footer>
     </form>
