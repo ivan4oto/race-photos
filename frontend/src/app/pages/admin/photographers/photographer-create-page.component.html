@@ -1,0 +1,165 @@
+<section class="admin-page">
+  <header class="intro">
+    <div class="intro-inner">
+      <p class="eyebrow">Admin • Photographers</p>
+      <h1>Create a photographer profile</h1>
+      <p class="lede">
+        Capture everything from studio branding to payout preferences in one go. Once the backend
+        endpoint is wired, this flow will create records directly in the Race Photos database.
+      </p>
+    </div>
+  </header>
+
+  <div class="form-wrapper">
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <section class="alert success" *ngIf="submissionSuccess()">{{ submissionSuccess() }}</section>
+      <section class="alert error" *ngIf="submissionError()">{{ submissionError() }}</section>
+
+      <div class="form-card">
+        <h2>Identity & contact</h2>
+        <div class="grid">
+          <label>
+            <span>Slug *</span>
+            <input formControlName="slug" type="text" placeholder="e.g. fast-shutter-co" autocomplete="off">
+            <small *ngIf="controlInvalid('slug')">Slug is required, lowercase, and can include dashes.</small>
+          </label>
+          <label>
+            <span>Display name *</span>
+            <input formControlName="displayName" type="text" placeholder="Fast Shutter Collective">
+            <small *ngIf="controlInvalid('displayName')">Display name is required.</small>
+          </label>
+          <label>
+            <span>First name *</span>
+            <input formControlName="firstName" type="text" placeholder="Alex">
+            <small *ngIf="controlInvalid('firstName')">First name is required.</small>
+          </label>
+          <label>
+            <span>Last name *</span>
+            <input formControlName="lastName" type="text" placeholder="Morgan">
+            <small *ngIf="controlInvalid('lastName')">Last name is required.</small>
+          </label>
+          <label>
+            <span>Email *</span>
+            <input formControlName="email" type="email" placeholder="studio@example.com">
+            <small *ngIf="controlInvalid('email')">Enter a valid email.</small>
+          </label>
+          <label>
+            <span>Phone</span>
+            <input formControlName="phoneNumber" type="tel" placeholder="+1 415 555 0000">
+          </label>
+          <label>
+            <span>Studio name</span>
+            <input formControlName="studioName" type="text" placeholder="Fast Shutter Co.">
+          </label>
+          <label>
+            <span>Website</span>
+            <input formControlName="website" type="url" placeholder="https://">
+          </label>
+          <label>
+            <span>Default currency</span>
+            <input formControlName="defaultCurrency" type="text" maxlength="3" placeholder="USD">
+          </label>
+          <label>
+            <span>Status *</span>
+            <select formControlName="status">
+              <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
+            </select>
+          </label>
+        </div>
+        <label class="full-width">
+          <span>Biography</span>
+          <textarea formControlName="biography" rows="4" placeholder="Short intro or notes visible to the participant"></textarea>
+        </label>
+      </div>
+
+      <div class="form-card">
+        <h2>Commercial settings</h2>
+        <div class="grid">
+          <label>
+            <span>Commission override</span>
+            <input formControlName="commissionOverride" type="number" min="0" max="1" step="0.01" placeholder="0.20">
+            <small>0.20 = 20% commission share for Race Photos</small>
+          </label>
+          <label>
+            <span>Payout threshold</span>
+            <input formControlName="payoutThreshold" type="number" min="0" step="1" placeholder="250">
+          </label>
+        </div>
+
+        <div formGroupName="rateCard" class="subcard">
+          <div class="subcard-header">
+            <h3>Rate card defaults</h3>
+            <p>Photographer-specific pricing that can be overridden per event later.</p>
+          </div>
+          <div class="grid">
+            <label>
+              <span>Price per photo</span>
+              <input formControlName="pricePerPhoto" type="number" min="0" step="0.01" placeholder="29.00">
+            </label>
+            <label>
+              <span>Bundle price</span>
+              <input formControlName="bundlePrice" type="number" min="0" step="0.01" placeholder="149.00">
+            </label>
+            <label>
+              <span>Bundle size</span>
+              <input formControlName="bundleSize" type="number" min="1" step="1" placeholder="10">
+            </label>
+            <label>
+              <span>Pricing currency</span>
+              <input formControlName="currencyCode" type="text" maxlength="3" placeholder="USD">
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-card">
+        <h2>Payout preferences</h2>
+        <div formGroupName="payoutPreferences" class="grid">
+          <label>
+            <span>Method *</span>
+            <select formControlName="method">
+              <option *ngFor="let method of payoutMethods" [value]="method">{{ method }}</option>
+            </select>
+          </label>
+          <label>
+            <span>Account reference</span>
+            <input formControlName="accountReference" type="text" placeholder="Connect acct ID, IBAN alias, etc.">
+          </label>
+          <label>
+            <span>Payout email</span>
+            <input formControlName="payoutEmail" type="email" placeholder="payout@example.com">
+          </label>
+          <label>
+            <span>Bank last 4</span>
+            <input formControlName="bankAccountLast4" type="text" maxlength="4" placeholder="1234">
+          </label>
+          <label>
+            <span>Routing number</span>
+            <input formControlName="bankRoutingNumber" type="text" maxlength="9" placeholder="110000000">
+          </label>
+          <label>
+            <span>Tax ID</span>
+            <input formControlName="taxId" type="text" placeholder="SSN / EIN / VAT">
+          </label>
+          <label class="full-width">
+            <span>Metadata / notes</span>
+            <textarea formControlName="metadata" rows="3" placeholder="Encrypted secrets, payout references, etc."></textarea>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-card">
+        <h2>Internal notes</h2>
+        <label class="full-width">
+          <span>Notes</span>
+          <textarea formControlName="internalNotes" rows="4" placeholder="Compliance reminders, follow-ups, or other private remarks"></textarea>
+        </label>
+      </div>
+
+      <div class="actions">
+        <button type="submit" [disabled]="!canSubmit()">Create photographer</button>
+        <p class="helper">Posts to <code>/admin/photographers</code> (dummy endpoint for now).</p>
+      </div>
+    </form>
+  </div>
+</section>

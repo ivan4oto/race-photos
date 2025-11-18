@@ -27,7 +27,7 @@ public class FaceSearchService {
     private final RekognitionClient rekognitionClient;
     private final FaceMetadataRepository metadataRepository;
     private final String bucket;
-    private final String collectionId;
+    private final String collectionPrefix;
     private final Integer maxFaces;
     private final Float similarityThreshold;
 
@@ -35,14 +35,14 @@ public class FaceSearchService {
             RekognitionClient rekognitionClient,
             FaceMetadataRepository metadataRepository,
             @Value("${aws.s3.bucket:}") String bucket,
-            @Value("${aws.rekognition.collection-id:}") String collectionId,
+            @Value("${aws.rekognition.collection-prefix}") String collectionPrefix,
             @Value("${aws.rekognition.search.max-faces}") Integer maxFaces,
             @Value("${aws.rekognition.search.threshold}") Float similarityThreshold
     ) {
         this.rekognitionClient = Objects.requireNonNull(rekognitionClient, "rekognitionClient");
         this.metadataRepository = Objects.requireNonNull(metadataRepository, "metadataRepository");
         this.bucket = bucket;
-        this.collectionId = collectionId;
+        this.collectionPrefix = collectionPrefix;
         this.maxFaces = maxFaces;
         this.similarityThreshold = similarityThreshold;
     }
@@ -51,7 +51,8 @@ public class FaceSearchService {
         long startNanos = System.nanoTime();
         log.debug("Starting face search for event {} and probe key {}", eventId, photoKey);
         String normalizedKey = validateInputs(eventId, photoKey);
-        SearchFacesByImageResponse response = runSearch(normalizedKey);
+        String collectionId = this.collectionPrefix + ":" + eventId;
+        SearchFacesByImageResponse response = runSearch(normalizedKey, collectionId);
 
         Map<String, Match> matchesByPhoto = new LinkedHashMap<>();
         List<FaceMatch> faceMatches = response.faceMatches();
@@ -113,7 +114,7 @@ public class FaceSearchService {
         });
     }
 
-    private SearchFacesByImageResponse runSearch(String photoKey) {
+    private SearchFacesByImageResponse runSearch(String photoKey, String collectionId) {
         try {
             SearchFacesByImageRequest.Builder builder = SearchFacesByImageRequest.builder()
                     .collectionId(collectionId)
@@ -150,8 +151,8 @@ public class FaceSearchService {
         if (bucket == null || bucket.isBlank()) {
             throw new IllegalStateException("S3 bucket name (aws.s3.bucket) is not configured");
         }
-        if (collectionId == null || collectionId.isBlank()) {
-            throw new IllegalStateException("Rekognition collection id (aws.rekognition.collection-id) is not configured");
+        if (collectionPrefix == null || collectionPrefix.isBlank()) {
+            throw new IllegalStateException("Rekognition collection prefix (aws.rekognition.prefix) is not configured");
         }
         if (eventId == null || eventId.isBlank()) {
             throw new IllegalArgumentException("eventId must not be blank");

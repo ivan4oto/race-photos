@@ -31,6 +31,16 @@ const routes: Routes = [
     title: 'Face Search Test — Race Photos'
   },
   {
+    path: 'admin/photographers/new',
+    loadComponent: () => import('./app/pages/admin/photographers/photographer-create-page.component').then(m => m.PhotographerCreatePageComponent),
+    title: 'Create Photographer — Race Photos'
+  },
+  {
+    path: 'admin/events/new',
+    loadComponent: () => import('./app/pages/admin/events/event-create-page.component').then(m => m.EventCreatePageComponent),
+    title: 'Create Event — Race Photos'
+  },
+  {
     path: 'signin',
     loadComponent: () => import('./app/pages/auth/signin-page.component').then(m => m.SignInPageComponent),
     title: 'Sign in — Race Photos'

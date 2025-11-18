@@ -32,7 +32,7 @@ public class FaceIndexingService {
     private final RekognitionClient rekognitionClient;
     private final FaceMetadataRepository metadataRepository;
     private final String bucket;
-    private final String collectionId;
+    private final String collectionPrefix;
     private final AtomicBoolean collectionEnsured = new AtomicBoolean(false);
     private final Object collectionLock = new Object();
 
@@ -40,29 +40,18 @@ public class FaceIndexingService {
             RekognitionClient rekognitionClient,
             FaceMetadataRepository metadataRepository,
             @Value("${aws.s3.bucket:}") String bucket,
-            @Value("${aws.rekognition.collection-id:}") String collectionId
+            @Value("${aws.rekognition.collection-prefix}") String collectionPrefix
     ) {
         this.rekognitionClient = Objects.requireNonNull(rekognitionClient, "rekognitionClient");
         this.metadataRepository = Objects.requireNonNull(metadataRepository, "metadataRepository");
         this.bucket = bucket;
-        this.collectionId = collectionId;
+        this.collectionPrefix = collectionPrefix;
     }
 
     public IndexingReport indexFacesForEvent(String eventId, List<String> objectKeys) {
-        if (bucket == null || bucket.isBlank()) {
-            throw new IllegalStateException("S3 bucket name (aws.s3.bucket) is not configured");
-        }
-        if (collectionId == null || collectionId.isBlank()) {
-            throw new IllegalStateException("Rekognition collection id (aws.rekognition.collection-id) is not configured");
-        }
-        if (eventId == null || eventId.isBlank()) {
-            throw new IllegalArgumentException("eventId must not be blank");
-        }
-        if (objectKeys == null || objectKeys.isEmpty()) {
-            throw new IllegalArgumentException("objectKeys must contain at least one item");
-        }
-
-        ensureCollectionExists();
+        validateInput(eventId);
+        String collectionId = getCollectionId(eventId);
+        ensureCollectionExists(collectionId);
 
         Map<String, Integer> facesPerImage = new LinkedHashMap<>();
         List<String> failedKeys = new ArrayList<>();
@@ -76,14 +65,14 @@ public class FaceIndexingService {
             }
             String normalizedKey = key.trim();
             try {
-                IndexFacesResponse response = indexFacesForImage(eventId, normalizedKey);
+                IndexFacesResponse response = indexFacesForImage(collectionId, normalizedKey);
                 List<FaceRecord> faceRecords = response.faceRecords();
                 int facesIndexed = faceRecords == null ? 0 : faceRecords.size();
                 facesPerImage.put(normalizedKey, facesIndexed);
                 totalFaces += facesIndexed;
                 if (faceRecords != null) {
                     for (FaceRecord record : faceRecords) {
-                        storeMetadata(eventId, normalizedKey, record);
+                        storeMetadata(collectionId, eventId, normalizedKey, record);
                     }
                 }
                 log.info("Indexed {} faces for event={} key={} (model v{})", facesIndexed, eventId, normalizedKey, response.faceModelVersion());
@@ -103,7 +92,7 @@ public class FaceIndexingService {
         );
     }
 
-    private IndexFacesResponse indexFacesForImage(String eventId, String key) {
+    private IndexFacesResponse indexFacesForImage(String collectionId, String key) {
         IndexFacesRequest request = IndexFacesRequest.builder()
                 .collectionId(collectionId)
                 .externalImageId(buildExternalImageId(key))
@@ -118,7 +107,7 @@ public class FaceIndexingService {
         return rekognitionClient.indexFaces(request);
     }
 
-    private void storeMetadata(String eventId, String key, FaceRecord record) {
+    private void storeMetadata(String collectionId, String eventId, String key, FaceRecord record) {
         if (record == null || record.face() == null) {
             return;
         }
@@ -134,7 +123,7 @@ public class FaceIndexingService {
         );
     }
 
-    private void ensureCollectionExists() {
+    private void ensureCollectionExists(String collectionId) {
         if (collectionEnsured.get()) {
             return;
         }
@@ -157,6 +146,21 @@ public class FaceIndexingService {
             }
             collectionEnsured.set(true);
         }
+    }
+    private void validateInput(String eventId) {
+        if (bucket == null || bucket.isBlank()) {
+            throw new IllegalStateException("S3 bucket name (aws.s3.bucket) is not configured");
+        }
+        if (collectionPrefix == null || collectionPrefix.isBlank()) {
+            throw new IllegalStateException("Rekognition collection prefix (aws.rekognition.prefix) is not configured");
+        }
+        if (eventId == null || eventId.isBlank()) {
+            throw new IllegalArgumentException("eventId must not be blank");
+        }
+    }
+
+    private String getCollectionId(String eventId) {
+        return collectionPrefix + ":" + eventId;
     }
 
     private static String buildExternalImageId(String key) {
