@@ -1,4 +1,4 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import {
@@ -91,10 +91,6 @@ export class PhotographerCreatePageComponent {
     payoutThreshold: this.fb.control<number | null>(null, [Validators.min(0)]),
     internalNotes: this.fb.control('', { validators: [Validators.maxLength(4000)] }),
   });
-
-  readonly canSubmit = computed(
-    () => this.form.valid && !this.submitting(),
-  );
 
   constructor(
     private readonly fb: FormBuilder,

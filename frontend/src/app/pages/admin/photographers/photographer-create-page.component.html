@@ -157,7 +157,7 @@
       </div>
 
       <div class="actions">
-        <button type="submit" [disabled]="!canSubmit()">Create photographer</button>
+        <button type="submit" [disabled]="form.invalid || submitting()">Create photographer</button>
         <p class="helper">Posts to <code>/admin/photographers</code> (dummy endpoint for now).</p>
       </div>
     </form>
