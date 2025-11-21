@@ -1,5 +1,12 @@
 server:
   port: 8080
+  servlet:
+    session:
+      cookie:
+        name: rp_session
+        http-only: true
+        secure: ${SESSION_COOKIE_SECURE:false}
+        same-site: lax
 
 spring:
   application:
@@ -19,13 +26,15 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+  mvc:
+    problemdetails:
+      enabled: true
 
 aws:
   region: ${AWS_REGION:eu-central-1}
   s3:
     bucket: ${AWS_S3_BUCKET:race-photos-test-bucket}
     endpoint: ${AWS_S3_ENDPOINT:}
-    # Set true for LocalStack to use path-style URLs
     path-style-enabled: ${AWS_S3_PATH_STYLE:false}
     presign:
       expiration-seconds: ${AWS_S3_PRESIGN_EXPIRATION_SECONDS:7200}
@@ -38,6 +47,16 @@ aws:
   dynamodb:
     table: ${AWS_DYNAMODB_FACE_TABLE:race-photos-face-metadata}
     endpoint: ${AWS_DYNAMODB_ENDPOINT:}
+
+cognito:
+  region: ${COGNITO_REGION:us-east-1}
+  user-pool-id: ${COGNITO_USER_POOL_ID:us-east-1_example}
+  app-client-id: ${COGNITO_APP_CLIENT_ID:exampleclientid}
+  jwk-cache-ttl: ${COGNITO_JWK_CACHE_TTL:PT60M}
+
+app:
+  cors:
+    allowed-origins: ${APP_ALLOWED_ORIGINS:http://localhost:4200}
 
 logging:
   level:

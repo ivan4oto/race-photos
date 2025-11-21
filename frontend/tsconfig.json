@@ -17,7 +17,12 @@
     "module": "es2022",
     "target": "es2022",
     "useDefineForClassFields": false,
-    "lib": ["es2022", "dom"]
+    "lib": ["es2022", "dom"],
+    "paths": {
+      "@aws-amplify/core": ["node_modules/@aws-amplify/core"],
+      "@aws-amplify/core/*": ["node_modules/@aws-amplify/core/*"],
+      "@aws-amplify/core/dist/*": ["node_modules/@aws-amplify/core/dist/*"],
+      "@aws-amplify/core/dist/esm/*": ["node_modules/@aws-amplify/core/dist/esm/*"]
+    }
   }
 }
-
