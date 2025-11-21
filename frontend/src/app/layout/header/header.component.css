@@ -25,3 +25,35 @@
 }
 .btn.sign-in:hover { box-shadow: 0 2px 10px rgba(25, 40, 70, 0.08); }
 
+.auth-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-pill {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #f4f6fb;
+  color: #0b1320;
+  font-size: 14px;
+  max-width: 160px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.btn.sign-out {
+  border: none;
+  background: #0b1320;
+  color: #ffffff;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn.sign-out[disabled] {
+  opacity: 0.6;
+  cursor: progress;
+}

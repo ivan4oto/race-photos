@@ -17,6 +17,9 @@
     "@angular/platform-browser": "^18.2.0",
     "@angular/platform-browser-dynamic": "^18.2.0",
     "@angular/router": "^18.2.0",
+    "@aws-amplify/core": "^6.14.0",
+    "@aws-amplify/ui-angular": "^5.1.6",
+    "aws-amplify": "^6.15.8",
     "rxjs": "^7.8.1",
     "tslib": "^2.6.2",
     "zone.js": "~0.14.5"
@@ -35,4 +38,3 @@
     "typescript": "~5.5.4"
   }
 }
-

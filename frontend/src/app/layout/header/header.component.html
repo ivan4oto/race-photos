@@ -5,7 +5,20 @@
       <a routerLink="/photographer" routerLinkActive="active">Photographers</a>
       <a routerLink="/participants" routerLinkActive="active">Participants</a>
     </nav>
-    <a class="btn sign-in" routerLink="/signin">Sign in</a>
+    <div class="auth-controls" *ngIf="authSession.user(); else signInLink">
+      <div class="user-pill">
+        {{
+          authSession.user()?.givenName
+            ? (authSession.user()?.givenName + ' ' + (authSession.user()?.familyName || ''))
+            : authSession.user()?.email
+        }}
+      </div>
+      <button class="btn sign-out" type="button" (click)="onSignOut()" [disabled]="authSession.status() === 'linking'">
+        Sign out
+      </button>
+    </div>
+    <ng-template #signInLink>
+      <a class="btn sign-in" routerLink="/signin">Sign in</a>
+    </ng-template>
   </div>
  </header>
-

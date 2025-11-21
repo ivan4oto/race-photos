@@ -1,8 +1,29 @@
 import { bootstrapApplication } from '@angular/platform-browser';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideRouter, Routes, withInMemoryScrolling } from '@angular/router';
+import { Amplify } from 'aws-amplify';
 import { AppComponent } from './app/app.component';
 import { provideApiBaseUrl } from './app/shared/api.config';
+import { environment } from './environments/environment';
+import { apiCredentialsInterceptor } from './app/shared/api-credentials.interceptor';
+
+Amplify.configure({
+  Auth: {
+    Cognito: {
+      userPoolId: environment.auth.userPoolId,
+      userPoolClientId: environment.auth.userPoolClientId,
+      loginWith: {
+        oauth: {
+          domain: environment.auth.domain,
+          scopes: environment.auth.scopes,
+          redirectSignIn: [environment.auth.redirectSignIn],
+          redirectSignOut: [environment.auth.redirectSignOut],
+          responseType: 'code'
+        }
+      }
+    }
+  }
+});
 
 const routes: Routes = [
   {
@@ -45,12 +66,17 @@ const routes: Routes = [
     loadComponent: () => import('./app/pages/auth/signin-page.component').then(m => m.SignInPageComponent),
     title: 'Sign in — Race Photos'
   },
+  {
+    path: 'signin/callback',
+    loadComponent: () => import('./app/pages/auth/signin-page.component').then(m => m.SignInPageComponent),
+    title: 'Sign in — Race Photos'
+  },
   { path: '**', redirectTo: '' }
 ];
 
 bootstrapApplication(AppComponent, {
   providers: [
-    provideHttpClient(),
+    provideHttpClient(withInterceptors([apiCredentialsInterceptor])),
     provideRouter(routes, withInMemoryScrolling({ anchorScrolling: 'enabled', scrollPositionRestoration: 'enabled' })),
     provideApiBaseUrl(),
   ],

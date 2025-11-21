@@ -1,0 +1,121 @@
+.signin-page {
+  background: #f7f9fc;
+  min-height: calc(100vh - 120px);
+  padding: 48px 16px 80px;
+}
+
+.container {
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.intro h1 {
+  margin: 0 0 8px;
+  font-size: clamp(28px, 5vw, 38px);
+  color: #0b1320;
+}
+
+.intro p {
+  margin: 0 0 24px;
+  color: #4b5569;
+}
+
+amplify-authenticator {
+  --amplify-components-authenticator-width-max: 520px;
+  --amplify-components-button-primary-background-color: #1a2b6b;
+  --amplify-components-button-primary-hover-background-color: #152356;
+  --amplify-components-button-font-weight: 600;
+  --amplify-components-tabs-item-active-color: #1a2b6b;
+  --amplify-components-fieldcontrol-focus-border-color: #1a2b6b;
+  width: 100%;
+  box-shadow: 0 20px 40px rgba(12, 26, 75, 0.08);
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+amplify-authenticator::part(federated-sign-in) {
+  padding: 24px 24px 0;
+}
+
+amplify-authenticator::part(federated-sign-in-buttons) {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+amplify-authenticator::part(federated-sign-in-button) {
+  border-radius: 999px;
+  border: 1px solid #d0d7e2;
+  font-weight: 600;
+  justify-content: center;
+}
+
+amplify-authenticator::part(federated-sign-in-divider) {
+  padding: 0 24px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.auth-card-header {
+  text-align: center;
+}
+
+.auth-card-header h2 {
+  margin: 0 0 4px;
+  font-size: 22px;
+}
+
+.post-login {
+  text-align: center;
+  padding: 32px;
+}
+
+.post-login .greeting {
+  margin-bottom: 12px;
+}
+
+.status {
+  margin: 8px 0 16px;
+  color: #4b5569;
+}
+
+.status.success {
+  color: #0e8345;
+}
+
+.status.error {
+  color: #c53030;
+}
+
+.btn.primary {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 999px;
+  border: none;
+  background: #1a2b6b;
+  color: #ffffff;
+  font-weight: 700;
+  letter-spacing: .3px;
+  cursor: pointer;
+}
+
+.btn.primary[disabled] {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.cookie-note {
+  margin: 16px 0 0;
+  text-align: center;
+  color: #4b5569;
+  font-size: 14px;
+}
+
+@media (max-width: 600px) {
+  .post-login {
+    padding: 24px 16px;
+  }
+}
