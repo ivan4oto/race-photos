@@ -29,6 +29,10 @@ spring:
   mvc:
     problemdetails:
       enabled: true
+  cloud:
+    aws:
+      region:
+        static: ${aws.region}
 
 aws:
   region: ${AWS_REGION:eu-central-1}
@@ -47,6 +51,9 @@ aws:
   dynamodb:
     table: ${AWS_DYNAMODB_FACE_TABLE:race-photos-face-metadata}
     endpoint: ${AWS_DYNAMODB_ENDPOINT:}
+  sqs:
+    photo-upload-queue: ${AWS_SQS_PHOTO_UPLOAD_QUEUE:photo-upload-event-queue-dev}
+    dead-letter-queue: ${AWS_SQS_PHOTO_UPLOAD_DLQ:}
 
 cognito:
   region: ${COGNITO_REGION:us-east-1}
