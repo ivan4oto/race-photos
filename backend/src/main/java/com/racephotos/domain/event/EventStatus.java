@@ -5,5 +5,6 @@ public enum EventStatus {
     UPCOMING,
     ACTIVE,
     COMPLETED,
+    ARCHIVED,
     REMOVED
 }
