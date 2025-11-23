@@ -9,4 +9,5 @@ public interface PhotographerRepository extends JpaRepository<Photographer, UUID
     Optional<Photographer> findBySlug(String slug);
     Optional<Photographer> findByEmail(String email);
     boolean existsBySlug(String slug);
+    boolean existsByEmail(String email);
 }
