@@ -21,6 +21,7 @@ import com.racephotos.auth.api.dto.CreateSessionRequest;
 import com.racephotos.auth.service.CognitoTokenVerifier;
 import com.racephotos.auth.session.SessionAttributes;
 import com.racephotos.auth.session.SessionUser;
+import com.racephotos.auth.user.UserService;
 
 @Validated
 @RestController
@@ -29,9 +30,11 @@ public class AuthController {
 
     private static final Logger log = LoggerFactory.getLogger(AuthController.class);
     private final CognitoTokenVerifier tokenVerifier;
+    private final UserService userService;
 
-    public AuthController(CognitoTokenVerifier tokenVerifier) {
+    public AuthController(CognitoTokenVerifier tokenVerifier, UserService userService) {
         this.tokenVerifier = tokenVerifier;
+        this.userService = userService;
     }
 
     @PostMapping("/session")
@@ -39,12 +42,14 @@ public class AuthController {
         @Valid @RequestBody CreateSessionRequest request,
         HttpServletRequest servletRequest
     ) {
-        SessionUser user = tokenVerifier.verifyIdToken(request.idToken());
+        var cognitoUser = tokenVerifier.verifyIdToken(request.idToken());
+        var persistedUser = userService.syncFromCognito(cognitoUser);
+        SessionUser sessionUser = SessionUser.from(persistedUser);
         renewSession(servletRequest);
         HttpSession session = servletRequest.getSession(true);
-        session.setAttribute(SessionAttributes.USER, user);
-        log.info("Created backend session for Cognito user {}", user.email());
-        return ResponseEntity.ok(AuthenticatedUserResponse.from(user));
+        session.setAttribute(SessionAttributes.USER, sessionUser);
+        log.info("Created backend session for Cognito user {}", sessionUser.email());
+        return ResponseEntity.ok(AuthenticatedUserResponse.from(sessionUser));
     }
 
     @GetMapping("/session")
