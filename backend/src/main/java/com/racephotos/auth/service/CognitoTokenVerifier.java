@@ -13,7 +13,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.racephotos.auth.config.CognitoProperties;
 import com.racephotos.auth.service.validator.CognitoAudienceValidator;
 import com.racephotos.auth.service.validator.CognitoTokenUseValidator;
-import com.racephotos.auth.session.SessionUser;
+import com.racephotos.auth.user.CognitoUserProfile;
 
 @Service
 public class CognitoTokenVerifier {
@@ -33,14 +33,15 @@ public class CognitoTokenVerifier {
         this.idTokenDecoder = decoder;
     }
 
-    public SessionUser verifyIdToken(String token) {
+    public CognitoUserProfile verifyIdToken(String token) {
         try {
             Jwt jwt = idTokenDecoder.decode(token);
-            return new SessionUser(
+            return new CognitoUserProfile(
                 jwt.getSubject(),
                 jwt.getClaimAsString("email"),
                 jwt.getClaimAsString("given_name"),
-                jwt.getClaimAsString("family_name")
+                jwt.getClaimAsString("family_name"),
+                jwt.getClaimAsString("picture")
             );
         } catch (JwtException ex) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Invalid Cognito ID token", ex);
