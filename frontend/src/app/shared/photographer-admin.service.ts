@@ -53,6 +53,24 @@ export interface CreatePhotographerRequest {
   internalNotes: string | null;
 }
 
+export interface PhotographerSummary {
+  id: string;
+  slug: string;
+  displayName: string;
+  email: string;
+  status: PhotographerStatus;
+  defaultCurrency: string | null;
+  updatedAt: string;
+}
+
+export interface PhotographerDetail extends CreatePhotographerRequest {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type UpdatePhotographerRequest = CreatePhotographerRequest;
+
 @Injectable({ providedIn: 'root' })
 export class PhotographerAdminService {
   constructor(
@@ -63,5 +81,20 @@ export class PhotographerAdminService {
   createPhotographer(payload: CreatePhotographerRequest): Promise<void> {
     const url = `${this.apiBaseUrl}/admin/photographers`;
     return firstValueFrom(this.http.post<void>(url, payload));
+  }
+
+  listPhotographers(): Promise<PhotographerSummary[]> {
+    const url = `${this.apiBaseUrl}/admin/photographers`;
+    return firstValueFrom(this.http.get<PhotographerSummary[]>(url));
+  }
+
+  getPhotographer(id: string): Promise<PhotographerDetail> {
+    const url = `${this.apiBaseUrl}/admin/photographers/${id}`;
+    return firstValueFrom(this.http.get<PhotographerDetail>(url));
+  }
+
+  updatePhotographer(id: string, payload: UpdatePhotographerRequest): Promise<PhotographerDetail> {
+    const url = `${this.apiBaseUrl}/admin/photographers/${id}`;
+    return firstValueFrom(this.http.put<PhotographerDetail>(url, payload));
   }
 }

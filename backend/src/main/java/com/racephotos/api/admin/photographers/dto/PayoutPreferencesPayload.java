@@ -1,4 +1,4 @@
-package com.racephotos.api.dto;
+package com.racephotos.api.admin.photographers.dto;
 
 import com.racephotos.domain.photographer.PayoutMethod;
 import com.racephotos.service.dto.PayoutPreferencesData;

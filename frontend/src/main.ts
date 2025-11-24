@@ -53,13 +53,33 @@ const routes: Routes = [
   },
   {
     path: 'admin/photographers/new',
-    loadComponent: () => import('./app/pages/admin/photographers/photographer-create-page.component').then(m => m.PhotographerCreatePageComponent),
+    loadComponent: () => import('./app/pages/admin/photographers/create/photographer-create-page.component').then(m => m.PhotographerCreatePageComponent),
     title: 'Create Photographer — Race Photos'
+  },
+  {
+    path: 'admin/photographers',
+    loadComponent: () => import('./app/pages/admin/photographers/list/photographer-list-page.component').then(m => m.PhotographerListPageComponent),
+    title: 'Photographers — Race Photos'
+  },
+  {
+    path: 'admin/photographers/:photographerId',
+    loadComponent: () => import('./app/pages/admin/photographers/edit/photographer-edit-page.component').then(m => m.PhotographerEditPageComponent),
+    title: 'Edit Photographer — Race Photos'
   },
   {
     path: 'admin/events/new',
     loadComponent: () => import('./app/pages/admin/events/event-create-page.component').then(m => m.EventCreatePageComponent),
     title: 'Create Event — Race Photos'
+  },
+  {
+    path: 'admin/events',
+    loadComponent: () => import('./app/pages/admin/events/event-list-page.component').then(m => m.EventListPageComponent),
+    title: 'Events — Race Photos'
+  },
+  {
+    path: 'admin/events/:eventId',
+    loadComponent: () => import('./app/pages/admin/events/event-edit-page.component').then(m => m.EventEditPageComponent),
+    title: 'Edit Event — Race Photos'
   },
   {
     path: 'signin',

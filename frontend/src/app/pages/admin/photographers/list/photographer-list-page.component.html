@@ -1,0 +1,60 @@
+<section class="page">
+  <div class="hero">
+    <div class="hero-body">
+      <p class="eyebrow">Admin • Photographers</p>
+      <h1>Manage photographer roster</h1>
+      <p class="lead">
+        Keep tabs on every photographer profile and jump into edits fast.
+      </p>
+      <div class="actions">
+        <a routerLink="/admin/photographers/new" class="btn primary">Create photographer</a>
+        <button type="button" class="btn ghost" (click)="load()" [disabled]="loading()">Refresh</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="alert error" *ngIf="error()">{{ error() }}</div>
+    <div class="card">
+      <header>
+        <div>
+          <h2>Photographers</h2>
+          <p>Lightweight table for quick scanning.</p>
+        </div>
+        <div class="badge" *ngIf="!loading()">{{ photographers().length }} total</div>
+      </header>
+
+      <div class="empty" *ngIf="!loading() && photographers().length === 0 && !error()">
+        <p>No photographers yet.</p>
+        <a routerLink="/admin/photographers/new" class="btn primary">Create profile</a>
+      </div>
+
+      <div class="table" *ngIf="!loading() && photographers().length > 0">
+        <div class="table-head">
+          <span>Name</span>
+          <span>Status</span>
+          <span>Email</span>
+          <span>Default currency</span>
+          <span>Updated</span>
+          <span></span>
+        </div>
+        <div class="table-row" *ngFor="let photographer of photographers()">
+          <div class="stack">
+            <strong>{{ photographer.displayName }}</strong>
+            <small>{{ photographer.slug }}</small>
+          </div>
+          <span class="pill">{{ photographer.status }}</span>
+          <span>{{ photographer.email }}</span>
+          <span>{{ photographer.defaultCurrency || '—' }}</span>
+          <span>{{ formatDate(photographer.updatedAt) }}</span>
+          <a class="link" [routerLink]="['/admin/photographers', photographer.id]">Edit</a>
+        </div>
+      </div>
+
+      <div class="loading" *ngIf="loading()">
+        <div class="spinner"></div>
+        <p>Loading photographers…</p>
+      </div>
+    </div>
+  </div>
+</section>

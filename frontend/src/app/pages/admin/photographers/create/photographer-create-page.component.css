@@ -3,6 +3,10 @@
   color: #0b1320;
 }
 
+.myclass {
+  color: red;
+}
+
 .admin-page {
   min-height: 100vh;
   background: #f6f7fb;
@@ -55,6 +59,42 @@ form {
   display: flex;
   flex-direction: column;
   gap: 20px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 18px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 14px;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+}
+
+.btn.primary {
+  background: #0b64f3;
+  color: #ffffff;
+  box-shadow: 0 10px 30px rgba(11, 100, 243, 0.25);
+}
+
+.btn.ghost {
+  background: #ffffff;
+  color: #0b1320;
+  border: 1px solid #dfe5fb;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn:not(:disabled):hover {
+  transform: translateY(-1px);
 }
 
 .form-card {
@@ -208,6 +248,28 @@ code {
   background: #eef1f8;
   padding: 2px 6px;
   border-radius: 6px;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 3px solid #dbe3f6;
+  border-top-color: #0b64f3;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (min-width: 720px) {

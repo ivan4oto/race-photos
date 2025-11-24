@@ -1,23 +1,25 @@
-import { Component, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit, signal } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
+  CreatePhotographerRequest,
   PhotographerAdminService,
+  PhotographerDetail,
   PhotographerStatus,
   PayoutMethod,
-  CreatePhotographerRequest,
-} from '../../../shared/photographer-admin.service';
+} from '../../../../shared/photographer-admin.service';
 
 interface PhotographerFormValue extends CreatePhotographerRequest {}
 
 @Component({
-  selector: 'app-photographer-create-page',
+  selector: 'app-photographer-edit-page',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
-  styleUrls: ['./photographer-create-page.component.css'],
-  templateUrl: './photographer-create-page.component.html',
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  styleUrls: ['./photographer-edit-page.component.css'],
+  templateUrl: './photographer-edit-page.component.html',
 })
-export class PhotographerCreatePageComponent {
+export class PhotographerEditPageComponent implements OnInit {
   readonly statuses: PhotographerStatus[] = [
     'ONBOARDING',
     'ACTIVE',
@@ -34,9 +36,12 @@ export class PhotographerCreatePageComponent {
     'MANUAL',
   ];
 
-  submitting = signal(false);
+  loading = signal(true);
+  loadError = signal<string | null>(null);
+  saving = signal(false);
   submissionError = signal<string | null>(null);
   submissionSuccess = signal<string | null>(null);
+  photographerId: string | null = null;
 
   readonly form = this.fb.group({
     slug: this.fb.control('', {
@@ -94,43 +99,96 @@ export class PhotographerCreatePageComponent {
 
   constructor(
     private readonly fb: FormBuilder,
+    private readonly route: ActivatedRoute,
     private readonly adminService: PhotographerAdminService,
   ) {}
+
+  ngOnInit(): void {
+    this.photographerId = this.route.snapshot.paramMap.get('photographerId');
+    if (this.photographerId) {
+      this.fetchPhotographer(this.photographerId);
+    } else {
+      this.loadError.set('Missing photographer id');
+      this.loading.set(false);
+    }
+  }
 
   controlInvalid(path: string): boolean {
     const control = this.form.get(path);
     return !!control && control.invalid && (control.dirty || control.touched);
   }
 
+  async fetchPhotographer(id: string): Promise<void> {
+    this.loading.set(true);
+    this.loadError.set(null);
+    try {
+      const photographer = await this.adminService.getPhotographer(id);
+      this.applyPhotographer(photographer);
+    } catch (err) {
+      console.error(err);
+      this.loadError.set('Unable to load photographer.');
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  private applyPhotographer(photographer: PhotographerDetail): void {
+    this.form.patchValue({
+      slug: photographer.slug,
+      firstName: photographer.firstName,
+      lastName: photographer.lastName,
+      displayName: photographer.displayName,
+      email: photographer.email,
+      phoneNumber: photographer.phoneNumber,
+      studioName: photographer.studioName,
+      website: photographer.website,
+      defaultCurrency: photographer.defaultCurrency,
+      status: photographer.status,
+      biography: photographer.biography,
+      commissionOverride: photographer.commissionOverride,
+      rateCard: {
+        pricePerPhoto: photographer.rateCard.pricePerPhoto,
+        bundlePrice: photographer.rateCard.bundlePrice,
+        bundleSize: photographer.rateCard.bundleSize,
+        currencyCode: photographer.rateCard.currencyCode,
+      },
+      payoutPreferences: {
+        method: photographer.payoutPreferences.method,
+        accountReference: photographer.payoutPreferences.accountReference,
+        payoutEmail: photographer.payoutPreferences.payoutEmail,
+        bankAccountLast4: photographer.payoutPreferences.bankAccountLast4,
+        bankRoutingNumber: photographer.payoutPreferences.bankRoutingNumber,
+        taxId: photographer.payoutPreferences.taxId,
+        metadata: photographer.payoutPreferences.metadata,
+      },
+      payoutThreshold: photographer.payoutThreshold,
+      internalNotes: photographer.internalNotes,
+    });
+  }
+
   async submit(): Promise<void> {
+    if (!this.photographerId) {
+      this.submissionError.set('Missing photographer id');
+      return;
+    }
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
-
     this.submissionError.set(null);
     this.submissionSuccess.set(null);
-    this.submitting.set(true);
-    const payload = this.buildPayload();
+    this.saving.set(true);
 
+    const payload = this.buildPayload();
     try {
-      await this.adminService.createPhotographer(payload);
-      this.submissionSuccess.set('Photographer profile created successfully.');
-      this.form.reset({
-        status: 'ONBOARDING',
-        defaultCurrency: 'EUR',
-        rateCard: {
-          currencyCode: 'EUR',
-        },
-        payoutPreferences: {
-          method: 'UNSPECIFIED',
-        },
-      });
+      const updated = await this.adminService.updatePhotographer(this.photographerId, payload);
+      this.applyPhotographer(updated);
+      this.submissionSuccess.set('Photographer updated successfully.');
     } catch (err) {
       console.error(err);
-      this.submissionError.set('Failed to create photographer. Please try again shortly.');
+      this.submissionError.set('Unable to update photographer. Please try again shortly.');
     } finally {
-      this.submitting.set(false);
+      this.saving.set(false);
     }
   }
 

@@ -2,16 +2,25 @@
   <div class="hero">
     <div class="hero-body">
       <p class="eyebrow">Admin • Events</p>
-      <h1>Launch a new event experience</h1>
+      <h1>Edit event</h1>
       <p class="lead">
-        Configure metadata, pricing defaults, and participant access in one pass. Once the backend
-        endpoint exists this flow will save the event directly in the database.
+        Update metadata, pricing, and assignments without leaving this workspace.
       </p>
+      <div class="actions">
+        <a routerLink="/admin/events" class="btn ghost">Back to events</a>
+        <a routerLink="/admin/events/new" class="btn primary">Create new event</a>
+      </div>
     </div>
   </div>
 
   <div class="container">
-    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+    <div class="alert error" *ngIf="loadError()">{{ loadError() }}</div>
+    <div class="loading" *ngIf="loadingEvent()">
+      <div class="spinner"></div>
+      <p>Loading event…</p>
+    </div>
+
+    <form *ngIf="!loadingEvent() && !loadError()" [formGroup]="form" (ngSubmit)="submit()" novalidate>
       <div class="alert success" *ngIf="submissionSuccess()">{{ submissionSuccess() }}</div>
       <div class="alert error" *ngIf="submissionError()">{{ submissionError() }}</div>
 
@@ -177,9 +186,66 @@
         </label>
       </section>
 
+      <section class="card assignments">
+        <header>
+          <h2>Photographer assignments</h2>
+          <p>Add or remove photographers linked to this event.</p>
+        </header>
+
+        <div class="assignment-grid">
+          <div>
+            <h3>Add photographer</h3>
+            <p class="helper">Use slug, email, or first + last name.</p>
+            <div class="assign-form" [formGroup]="assignmentForm">
+              <label>
+                <span>Slug</span>
+                <input type="text" formControlName="slug" placeholder="photographer-slug">
+              </label>
+              <label>
+                <span>Email</span>
+                <input type="email" formControlName="email" placeholder="person@studio.com">
+              </label>
+              <div class="name-row">
+                <label>
+                  <span>First name</span>
+                  <input type="text" formControlName="firstName">
+                </label>
+                <label>
+                  <span>Last name</span>
+                  <input type="text" formControlName="lastName">
+                </label>
+              </div>
+              <div class="assign-actions">
+                <button type="button" class="btn primary" (click)="assignPhotographer()" [disabled]="assigning()">
+                  {{ assigning() ? 'Assigning…' : 'Add photographer' }}
+                </button>
+                <div class="alert error" *ngIf="assignmentError()">{{ assignmentError() }}</div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3>Assigned</h3>
+            <p class="helper">Click remove to unassign.</p>
+            <ul class="assigned-list" *ngIf="photographers().length > 0">
+              <li *ngFor="let photographer of photographers()">
+                <div>
+                  <strong>{{ photographer.displayName }}</strong>
+                  <small>{{ photographer.email }}</small>
+                </div>
+                <button type="button" class="link" (click)="removePhotographer(photographer)">Remove</button>
+              </li>
+            </ul>
+            <p class="empty" *ngIf="photographers().length === 0">No photographers linked yet.</p>
+          </div>
+        </div>
+      </section>
+
       <footer class="actions">
-        <button type="submit" [disabled]="form.invalid || submitting()">Create event</button>
-        <p class="helper">Posts to <code>/admin/events</code> and persists immediately.</p>
+        <button type="submit" [disabled]="form.invalid || saving()">
+          {{ saving() ? 'Saving…' : 'Save changes' }}
+        </button>
+        <p class="helper">Updates the event immediately.</p>
       </footer>
     </form>
   </div>

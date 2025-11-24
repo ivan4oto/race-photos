@@ -1,7 +1,7 @@
-package com.racephotos.api.dto;
+package com.racephotos.api.admin.events.dto;
 
+import com.racephotos.api.admin.shared.dto.PricingProfilePayload;
 import com.racephotos.domain.event.EventStatus;
-import com.racephotos.service.dto.AccessPolicyData;
 import com.racephotos.service.dto.CreateEventCommand;
 import com.racephotos.service.dto.PricingProfileData;
 import jakarta.validation.Valid;
@@ -95,11 +95,7 @@ public record CreateEventRequest(
                         defaultPricing.bundleSize(),
                         defaultPricing.currencyCode()
                 ),
-                new AccessPolicyData(
-                        accessPolicy.mode(),
-                        accessPolicy.provider(),
-                        accessPolicy.configuration()
-                ),
+                accessPolicy.toData(),
                 participantMessage
         );
     }

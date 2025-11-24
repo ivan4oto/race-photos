@@ -11,6 +11,7 @@ import com.racephotos.domain.photographer.PhotographerStatus;
 import com.racephotos.service.dto.CreatePhotographerCommand;
 import com.racephotos.service.dto.PayoutPreferencesData;
 import com.racephotos.service.dto.PricingProfileData;
+import com.racephotos.service.dto.UpdatePhotographerCommand;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -107,6 +109,88 @@ public class PhotographerAdminService {
         } catch (DataIntegrityViolationException e) {
             log.warn("Failed to create photographer with slug '{}' due to constraint violation", slug);
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Photographer could not be created", e);
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public List<Photographer> listPhotographers() {
+        return photographerRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public Photographer getPhotographer(UUID photographerId) {
+        if (photographerId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Photographer id is required");
+        }
+        return photographerRepository.findById(photographerId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Photographer not found"));
+    }
+
+    @Transactional
+    public Photographer updatePhotographer(UpdatePhotographerCommand command) {
+        if (command == null || command.photographerId() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Photographer id is required");
+        }
+
+        Photographer photographer = photographerRepository.findById(command.photographerId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Photographer not found"));
+
+        String slug = normalize(command.slug());
+        if (slug == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Slug must not be blank");
+        }
+        photographerRepository.findBySlug(slug)
+                .filter(existing -> !existing.getId().equals(photographer.getId()))
+                .ifPresent(existing -> {
+                    throw new ResponseStatusException(HttpStatus.CONFLICT, "A photographer with this slug already exists");
+                });
+
+        String email = normalizeEmail(command.email());
+        if (email == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Email must not be blank");
+        }
+        photographerRepository.findByEmail(email)
+                .filter(existing -> !existing.getId().equals(photographer.getId()))
+                .ifPresent(existing -> {
+                    throw new ResponseStatusException(HttpStatus.CONFLICT, "A photographer with this email already exists");
+                });
+
+        BigDecimal commissionOverride = normalizeDecimal(command.commissionOverride());
+        if (commissionOverride != null &&
+                (commissionOverride.compareTo(BigDecimal.ZERO) < 0 || commissionOverride.compareTo(BigDecimal.ONE) > 0)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Commission override must be between 0 and 1");
+        }
+
+        BigDecimal payoutThreshold = normalizeDecimal(command.payoutThreshold());
+        if (payoutThreshold != null && payoutThreshold.compareTo(BigDecimal.ZERO) < 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Payout threshold must be non-negative");
+        }
+
+        photographer.setSlug(slug);
+        photographer.setFirstName(normalize(command.firstName()));
+        photographer.setLastName(normalize(command.lastName()));
+        photographer.setDisplayName(normalize(command.displayName()));
+        photographer.setEmail(email);
+        photographer.setPhoneNumber(normalize(command.phoneNumber()));
+        photographer.setStudioName(normalize(command.studioName()));
+        photographer.setWebsite(normalize(command.website()));
+        photographer.setDefaultCurrency(normalizeUpper(command.defaultCurrency()));
+        photographer.setStatus(command.status() == null ? PhotographerStatus.ONBOARDING : command.status());
+        photographer.setBiography(normalize(command.biography()));
+        photographer.setCommissionOverride(commissionOverride);
+        photographer.setPayoutThreshold(payoutThreshold);
+        photographer.setInternalNotes(normalize(command.internalNotes()));
+
+        applyRateCard(photographer, command.rateCard());
+        applyPayoutPreferences(photographer, command.payoutPreferences());
+
+        try {
+            Photographer saved = photographerRepository.save(photographer);
+            log.info("Updated photographer {} with slug '{}'", saved.getId(), saved.getSlug());
+            return saved;
+        } catch (DataIntegrityViolationException e) {
+            log.warn("Failed to update photographer with slug '{}' due to constraint violation", slug);
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Photographer could not be updated", e);
         }
     }
 

@@ -1,7 +1,9 @@
-package com.racephotos.api.dto;
+package com.racephotos.api.admin.photographers.dto;
 
+import com.racephotos.api.admin.shared.dto.PricingProfilePayload;
 import com.racephotos.domain.photographer.PhotographerStatus;
 import com.racephotos.service.dto.CreatePhotographerCommand;
+import com.racephotos.service.dto.PayoutPreferencesData;
 import com.racephotos.service.dto.PricingProfileData;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMax;
@@ -43,7 +45,6 @@ public record CreatePhotographerRequest(
         String defaultCurrency,
         @NotNull
         PhotographerStatus status,
-        @Size(max = 4000)
         String biography,
         @DecimalMin(value = "0.0", inclusive = true)
         @DecimalMax(value = "1.0", inclusive = true)
@@ -59,7 +60,7 @@ public record CreatePhotographerRequest(
         @Size(max = 4000)
         String internalNotes
 ) {
-    public CreatePhotographerCommand toCommand(UUID createdByUserId) {
+    public CreatePhotographerCommand toCommand(UUID userId) {
         return new CreatePhotographerCommand(
                 slug,
                 firstName,
@@ -79,10 +80,18 @@ public record CreatePhotographerRequest(
                         rateCard.bundleSize(),
                         rateCard.currencyCode()
                 ),
-                payoutPreferences.toData(),
+                new PayoutPreferencesData(
+                        payoutPreferences.method(),
+                        payoutPreferences.accountReference(),
+                        payoutPreferences.payoutEmail(),
+                        payoutPreferences.bankAccountLast4(),
+                        payoutPreferences.bankRoutingNumber(),
+                        payoutPreferences.taxId(),
+                        payoutPreferences.metadata()
+                ),
                 payoutThreshold,
                 internalNotes,
-                createdByUserId
+                userId
         );
     }
 }

@@ -1,0 +1,68 @@
+<section class="page">
+  <div class="hero">
+    <div class="hero-body">
+      <p class="eyebrow">Admin • Events</p>
+      <h1>Orchestrate every event</h1>
+      <p class="lead">
+        Browse all events, jump into edits, and keep photographer assignments tidy.
+      </p>
+      <div class="actions">
+        <a routerLink="/admin/events/new" class="btn primary">Create event</a>
+        <button type="button" class="btn ghost" (click)="load()" [disabled]="loading()">Refresh</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="alert error" *ngIf="error()">{{ error() }}</div>
+    <div class="card">
+      <header>
+        <div>
+          <h2>Events</h2>
+          <p>Lightweight view for quick scanning.</p>
+        </div>
+        <div class="badge" *ngIf="!loading()">{{ events().length }} total</div>
+      </header>
+
+      <div class="empty" *ngIf="!loading() && events().length === 0 && !error()">
+        <p>No events yet. Start by creating one.</p>
+        <a routerLink="/admin/events/new" class="btn primary">Create event</a>
+      </div>
+
+      <div class="table" *ngIf="!loading() && events().length > 0">
+        <div class="table-head">
+          <span>Name</span>
+          <span>Status</span>
+          <span>Schedule</span>
+          <span>Location</span>
+          <span>Photographers</span>
+          <span>Updated</span>
+          <span></span>
+        </div>
+        <div class="table-row" *ngFor="let event of events()">
+          <div class="stack">
+            <strong>{{ event.name }}</strong>
+            <small>{{ event.slug }}</small>
+          </div>
+          <span class="pill">{{ event.status }}</span>
+          <div class="stack">
+            <span>{{ formatDate(event.startTime) }}</span>
+            <small *ngIf="event.endTime">→ {{ formatDate(event.endTime) }}</small>
+          </div>
+          <div class="stack">
+            <span>{{ event.locationCity || 'TBD' }}</span>
+            <small>{{ event.locationCountry || '' }}</small>
+          </div>
+          <span>{{ event.photographerCount }}</span>
+          <span>{{ formatDate(event.updatedAt) }}</span>
+          <a class="link" [routerLink]="['/admin/events', event.id]">Edit</a>
+        </div>
+      </div>
+
+      <div class="loading" *ngIf="loading()">
+        <div class="spinner"></div>
+        <p>Loading events…</p>
+      </div>
+    </div>
+  </div>
+</section>
