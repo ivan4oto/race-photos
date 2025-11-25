@@ -1,7 +1,7 @@
 package com.racephotos.api.admin.photographers.dto;
 
 import com.racephotos.domain.photographer.PayoutMethod;
-import com.racephotos.service.dto.PayoutPreferencesData;
+import com.racephotos.service.photographer.dto.PayoutPreferencesData;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;

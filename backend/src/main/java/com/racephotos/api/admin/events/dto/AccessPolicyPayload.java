@@ -1,7 +1,7 @@
 package com.racephotos.api.admin.events.dto;
 
 import com.racephotos.domain.event.EligibilityMode;
-import com.racephotos.service.dto.AccessPolicyData;
+import com.racephotos.service.event.dto.AccessPolicyData;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 

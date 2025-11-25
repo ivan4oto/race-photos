@@ -5,7 +5,7 @@ import com.racephotos.api.admin.photographers.dto.PhotographerDetailResponse;
 import com.racephotos.api.admin.photographers.dto.PhotographerSummaryResponse;
 import com.racephotos.api.admin.photographers.dto.UpdatePhotographerRequest;
 import com.racephotos.auth.session.SessionUser;
-import com.racephotos.service.PhotographerAdminService;
+import com.racephotos.service.photographer.PhotographerAdminService;
 import jakarta.validation.Valid;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

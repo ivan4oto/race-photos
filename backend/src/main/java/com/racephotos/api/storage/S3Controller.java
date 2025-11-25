@@ -2,7 +2,7 @@ package com.racephotos.api.storage;
 
 import com.racephotos.api.storage.dto.S3SignedUrlRequest;
 import com.racephotos.api.storage.dto.S3SignedUrlResponse;
-import com.racephotos.service.S3UrlService;
+import com.racephotos.service.storage.S3UrlService;
 import jakarta.validation.Valid;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

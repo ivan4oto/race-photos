@@ -1,6 +1,6 @@
 package com.racephotos.api.admin.shared.dto;
 
-import com.racephotos.service.dto.PricingProfileData;
+import com.racephotos.service.common.dto.PricingProfileData;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;

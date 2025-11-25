@@ -2,9 +2,9 @@ package com.racephotos.api.admin.photographers.dto;
 
 import com.racephotos.api.admin.shared.dto.PricingProfilePayload;
 import com.racephotos.domain.photographer.PhotographerStatus;
-import com.racephotos.service.dto.PayoutPreferencesData;
-import com.racephotos.service.dto.PricingProfileData;
-import com.racephotos.service.dto.UpdatePhotographerCommand;
+import com.racephotos.service.photographer.dto.PayoutPreferencesData;
+import com.racephotos.service.common.dto.PricingProfileData;
+import com.racephotos.service.photographer.dto.UpdatePhotographerCommand;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;

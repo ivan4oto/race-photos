@@ -1,6 +1,6 @@
 package com.racephotos.api.search.dto;
 
-import com.racephotos.service.FaceSearchService;
+import com.racephotos.service.search.FaceSearchService;
 import software.amazon.awssdk.services.rekognition.model.BoundingBox;
 
 import java.util.List;

@@ -2,7 +2,7 @@ package com.racephotos.api.admin.events.dto;
 
 import com.racephotos.api.admin.shared.dto.PricingProfilePayload;
 import com.racephotos.domain.event.EventStatus;
-import com.racephotos.service.dto.UpdateEventCommand;
+import com.racephotos.service.event.dto.UpdateEventCommand;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;

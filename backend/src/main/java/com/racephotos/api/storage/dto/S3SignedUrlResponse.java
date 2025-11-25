@@ -1,6 +1,6 @@
 package com.racephotos.api.storage.dto;
 
-import com.racephotos.service.S3UrlService;
+import com.racephotos.service.storage.S3UrlService;
 
 import java.util.List;
 

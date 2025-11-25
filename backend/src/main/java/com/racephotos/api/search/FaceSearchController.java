@@ -3,7 +3,7 @@ package com.racephotos.api.search;
 import com.racephotos.api.search.dto.FaceSearchRequest;
 import com.racephotos.api.search.dto.FaceSearchResponse;
 import com.racephotos.auth.session.SessionUser;
-import com.racephotos.service.FaceSearchService;
+import com.racephotos.service.search.FaceSearchService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;

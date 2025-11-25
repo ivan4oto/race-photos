@@ -7,7 +7,7 @@ import com.racephotos.api.admin.events.dto.EventSummaryResponse;
 import com.racephotos.api.admin.events.dto.UpdateEventRequest;
 import com.racephotos.auth.session.SessionUser;
 import com.racephotos.domain.event.Event;
-import com.racephotos.service.EventAdminService;
+import com.racephotos.service.event.EventAdminService;
 import jakarta.validation.Valid;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

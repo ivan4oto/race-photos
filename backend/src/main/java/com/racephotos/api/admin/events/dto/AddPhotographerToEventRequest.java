@@ -1,6 +1,6 @@
 package com.racephotos.api.admin.events.dto;
 
-import com.racephotos.service.dto.PhotographerIdentifierData;
+import com.racephotos.service.photographer.dto.PhotographerIdentifierData;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
