@@ -3,7 +3,7 @@
 ## Domain Overview
 - **Purpose:** Allow event participants to quickly discover, preview, and purchase photographs that feature them by matching an uploaded reference photo (e.g., selfie) against the catalog of official event photos.
 - **Matching Approach:** Photographers' uploads are preprocessed through a facial recognition service to produce face embeddings (vectors). Participant uploads are converted into embeddings and compared against stored vectors scoped to the specific event.
-- **Commerce Model:** Users preview low-resolution, watermarked photos, then purchase individual images or bundles. Pricing varies per photographer. Race Photos retains a commission on every sale and periodically pays photographers their earnings.
+- **Commerce Model:** Default: users preview low-resolution, watermarked photos, then purchase individual images or bundles. Pricing varies per photographer. Race Photos retains a commission on every sale and periodically pays photographers their earnings. Optional organizer-paid model: an event organizer can fund participant access (per-event or a global deal) so verified participants get full-resolution downloads for free; organizer pays Race Photos and photographers directly for usage/licensing.
 
 ## Primary Actors
 - **Participant (End User):** Registered event attendee allowed to browse and buy only the photos from events they took part in.
@@ -33,12 +33,12 @@
 - Access must be limited to events the participant actually attended; cross-event browsing is disallowed unless permission is granted.
 - Photographers can upload and manage only the events they are assigned to, unless granted global access by admins.
 
-## Pricing, Commissions & Payouts
 - **Photographer Pricing:** Each photographer defines their rates (per photo, bundle, or tiered). Pricing metadata should be stored per photo or per event package.
 - **Race Photos Commission:** A default platform commission applies to every sale, with optional photographer-specific overrides.
 - **Purchase Flow:** Shopper selects photos, price is computed (photographer price + commission). Secure checkout occurs via Apple Pay, Google Pay, etc.
 - **Settlement:** Once payment succeeds, revenue splits into photographer earnings and Race Photos commission. Photographer earnings accumulate until scheduled payouts.
-- **Payout Cycle:** At defined intervals, Race Photos issues payouts to photographers, deducting any platform commissions and fees.
+- **Organizer-paid access:** Organizers can contract per event or across their portfolio to fund participant access. In this mode, verified participants download full-resolution photos for free. The organizer pays Race Photos (platform/service fee) and pays photographers directly under the negotiated license/usage terms; no participant-facing charges or platform commission on downloads apply.
+- **Payout Cycle:** At defined intervals, Race Photos issues payouts to photographers, deducting any platform commissions and fees (not used when organizer pays photographers directly).
 
 ## Key Domain Entities & Glossary
 | Term | Description |
