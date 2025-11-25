@@ -58,6 +58,7 @@ public class ParticipantAdminService {
 
         int created = 0;
         int unchanged = 0;
+        var outcomes = new java.util.ArrayList<ParticipantIngestResult.RegistrationOutcome>(registrations.size());
 
         for (ParticipantRegistration registration : registrations) {
             String firstName = normalize(registration.firstName());
@@ -65,6 +66,13 @@ public class ParticipantAdminService {
             String email = normalizeEmail(registration.email());
             if (firstName == null || lastName == null || email == null) {
                 log.debug("Skipping registration with missing required fields");
+                outcomes.add(new ParticipantIngestResult.RegistrationOutcome(
+                        ParticipantIngestResult.RegistrationStatus.SKIPPED_INVALID,
+                        registration.externalRegistrationId(),
+                        email,
+                        firstName,
+                        lastName
+                ));
                 continue;
             }
 
@@ -75,6 +83,13 @@ public class ParticipantAdminService {
 
             if (existing.isPresent()) {
                 unchanged++;
+                outcomes.add(new ParticipantIngestResult.RegistrationOutcome(
+                        ParticipantIngestResult.RegistrationStatus.UNCHANGED,
+                        registration.externalRegistrationId(),
+                        email,
+                        firstName,
+                        lastName
+                ));
                 continue; // duplicate for same event + email + name is ignored
             }
 
@@ -97,10 +112,17 @@ public class ParticipantAdminService {
 
             participantRepository.save(participant);
             created++;
+            outcomes.add(new ParticipantIngestResult.RegistrationOutcome(
+                    ParticipantIngestResult.RegistrationStatus.CREATED,
+                    registration.externalRegistrationId(),
+                    email,
+                    firstName,
+                    lastName
+            ));
         }
 
         log.info("Participant ingest for event {}: created {} unchanged {}", eventId, created, unchanged);
-        return ParticipantIngestResult.of(created, unchanged);
+        return ParticipantIngestResult.of(created, unchanged, outcomes);
     }
 
     private String normalize(String value) {

@@ -52,7 +52,16 @@ public class ParticipantAdminController {
         var result = participantAdminService.ingest(eventId, regs);
         log.info("User {} imported participants for event {} (created={}, unchanged={})",
                 user.email(), eventId, result.createdCount(), result.unchangedCount());
-        return ResponseEntity.ok(ParticipantIngestResponse.of(result.createdCount(), result.unchangedCount()));
+        var outcomes = result.outcomes().stream()
+                .map(o -> new ParticipantIngestResponse.RegistrationOutcome(
+                        o.status().name(),
+                        o.externalRegistrationId(),
+                        o.email(),
+                        o.firstName(),
+                        o.lastName()
+                ))
+                .toList();
+        return ResponseEntity.ok(ParticipantIngestResponse.of(result.createdCount(), result.unchangedCount(), outcomes));
     }
 
     private static ParticipantRegistration toRegistration(ParticipantRegistrationPayload payload) {
