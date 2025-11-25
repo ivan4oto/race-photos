@@ -1,0 +1,171 @@
+<section class="admin-page">
+  <header class="intro">
+    <div class="intro-inner">
+      <p class="eyebrow">Admin • Photographers</p>
+      <h1>Edit photographer</h1>
+      <p class="lede">
+        Keep profile data, payout preferences, and rate cards up to date.
+      </p>
+      <div class="actions">
+        <a routerLink="/admin/photographers" class="btn ghost">Back to photographers</a>
+        <a routerLink="/admin/photographers/new" class="btn primary">Create new</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="form-wrapper">
+    <section class="alert error" *ngIf="loadError()">{{ loadError() }}</section>
+    <div class="loading" *ngIf="loading()">
+      <div class="spinner"></div>
+      <p>Loading photographer…</p>
+    </div>
+
+    <form *ngIf="!loading() && !loadError()" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <section class="alert success" *ngIf="submissionSuccess()">{{ submissionSuccess() }}</section>
+      <section class="alert error" *ngIf="submissionError()">{{ submissionError() }}</section>
+
+      <div class="form-card">
+        <h2>Identity & contact</h2>
+        <div class="grid">
+          <label>
+            <span>Slug *</span>
+            <input type="text" formControlName="slug" placeholder="e.g. studio-name" autocomplete="off">
+            <small *ngIf="controlInvalid('slug')">Lowercase, dashes only; required.</small>
+          </label>
+          <label>
+            <span>Display name *</span>
+            <input type="text" formControlName="displayName" placeholder="Alex Kim Studio">
+            <small *ngIf="controlInvalid('displayName')">Required</small>
+          </label>
+          <label>
+            <span>First name *</span>
+            <input type="text" formControlName="firstName" placeholder="Alex">
+            <small *ngIf="controlInvalid('firstName')">Required</small>
+          </label>
+          <label>
+            <span>Last name *</span>
+            <input type="text" formControlName="lastName" placeholder="Kim">
+            <small *ngIf="controlInvalid('lastName')">Required</small>
+          </label>
+          <label>
+            <span>Email *</span>
+            <input type="email" formControlName="email" placeholder="alex@studio.com">
+            <small *ngIf="controlInvalid('email')">Valid email required.</small>
+          </label>
+          <label>
+            <span>Phone</span>
+            <input type="tel" formControlName="phoneNumber" placeholder="+49 160 123456">
+          </label>
+          <label>
+            <span>Studio name</span>
+            <input type="text" formControlName="studioName" placeholder="Studio Co.">
+          </label>
+          <label>
+            <span>Website</span>
+            <input type="url" formControlName="website" placeholder="https://studio.com">
+          </label>
+          <label>
+            <span>Default currency</span>
+            <input type="text" formControlName="defaultCurrency" placeholder="EUR" maxlength="3">
+          </label>
+          <label>
+            <span>Status *</span>
+            <select formControlName="status">
+              <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
+            </select>
+          </label>
+        </div>
+        <label class="full-width">
+          <span>Biography</span>
+          <textarea formControlName="biography" rows="3" placeholder="Intro surfaced on photographer cards."></textarea>
+        </label>
+        <label class="full-width">
+          <span>Internal notes</span>
+          <textarea formControlName="internalNotes" rows="3" placeholder="Visible only to admins."></textarea>
+        </label>
+      </div>
+
+      <div class="form-card">
+        <h2>Pricing & commissions</h2>
+        <div class="grid">
+          <label>
+            <span>Commission override</span>
+            <input type="number" formControlName="commissionOverride" min="0" max="1" step="0.01" placeholder="0.20">
+            <small>0.20 = 20% platform take</small>
+          </label>
+          <label>
+            <span>Payout threshold</span>
+            <input type="number" formControlName="payoutThreshold" min="0" step="1" placeholder="100">
+          </label>
+        </div>
+        <div class="subcard" formGroupName="rateCard">
+          <div class="subcard-header">
+            <h3>Default rate card</h3>
+            <p>Starting prices for new uploads.</p>
+          </div>
+          <div class="grid">
+            <label>
+              <span>Price per photo</span>
+              <input type="number" formControlName="pricePerPhoto" min="0" step="0.01" placeholder="25.00">
+            </label>
+            <label>
+              <span>Bundle price</span>
+              <input type="number" formControlName="bundlePrice" min="0" step="0.01" placeholder="120.00">
+            </label>
+            <label>
+              <span>Bundle size</span>
+              <input type="number" formControlName="bundleSize" min="1" step="1" placeholder="8">
+            </label>
+            <label>
+              <span>Currency</span>
+              <input type="text" formControlName="currencyCode" maxlength="3" placeholder="EUR">
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-card">
+        <h2>Payout preferences</h2>
+        <div class="grid" formGroupName="payoutPreferences">
+          <label>
+            <span>Method *</span>
+            <select formControlName="method">
+              <option *ngFor="let method of payoutMethods" [value]="method">{{ method }}</option>
+            </select>
+          </label>
+          <label>
+            <span>Account reference</span>
+            <input type="text" formControlName="accountReference" placeholder="Account or IBAN token">
+          </label>
+          <label>
+            <span>Payout email</span>
+            <input type="email" formControlName="payoutEmail" placeholder="payout@studio.com">
+          </label>
+          <label>
+            <span>Bank account last 4</span>
+            <input type="text" formControlName="bankAccountLast4" maxlength="4">
+          </label>
+          <label>
+            <span>Bank routing number</span>
+            <input type="text" formControlName="bankRoutingNumber" maxlength="9">
+          </label>
+          <label>
+            <span>Tax ID</span>
+            <input type="text" formControlName="taxId" placeholder="VAT/SSN">
+          </label>
+        </div>
+        <label class="full-width">
+          <span>Metadata</span>
+          <textarea formControlName="metadata" rows="3" placeholder="JSON, notes, payout preferences"></textarea>
+        </label>
+      </div>
+
+      <footer class="actions">
+        <button type="submit" [disabled]="form.invalid || saving()">
+          {{ saving() ? 'Saving…' : 'Save changes' }}
+        </button>
+        <p class="helper">Applies updates immediately.</p>
+      </footer>
+    </form>
+  </div>
+</section>
