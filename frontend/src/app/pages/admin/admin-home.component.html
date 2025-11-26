@@ -1,0 +1,22 @@
+<section class="page">
+  <div class="hero">
+    <div class="hero-body">
+      <p class="eyebrow">Admin</p>
+      <h1>Control center</h1>
+      <p class="lead">Quick links to manage events, photographers, and providers.</p>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="list">
+      <a class="card" *ngFor="let link of links" [routerLink]="link.href">
+        <div>
+          <p class="eyebrow small">{{ link.title }}</p>
+          <h2>{{ link.cta }}</h2>
+          <p class="description">{{ link.description }}</p>
+        </div>
+        <span class="arrow">→</span>
+      </a>
+    </div>
+  </div>
+</section>

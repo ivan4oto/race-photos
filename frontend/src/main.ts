@@ -57,6 +57,21 @@ const routes: Routes = [
     title: 'Create Photographer — Race Photos'
   },
   {
+    path: 'admin/providers/new',
+    loadComponent: () => import('./app/pages/admin/providers/create/provider-create-page.component').then(m => m.ProviderCreatePageComponent),
+    title: 'Create Provider — Race Photos'
+  },
+  {
+    path: 'admin/providers',
+    loadComponent: () => import('./app/pages/admin/providers/list/provider-list-page.component').then(m => m.ProviderListPageComponent),
+    title: 'Providers — Race Photos'
+  },
+  {
+    path: 'admin',
+    loadComponent: () => import('./app/pages/admin/admin-home.component').then(m => m.AdminHomeComponent),
+    title: 'Admin — Race Photos'
+  },
+  {
     path: 'admin/photographers',
     loadComponent: () => import('./app/pages/admin/photographers/list/photographer-list-page.component').then(m => m.PhotographerListPageComponent),
     title: 'Photographers — Race Photos'

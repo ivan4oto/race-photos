@@ -21,7 +21,7 @@ public class ParticipantProvider {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "display_name", nullable = false, length = 160)
+    @Column(name = "display_name", nullable = false, length = 160, unique = true)
     private String displayName;
 
     @Column(name = "email", length = 160)
