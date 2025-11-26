@@ -12,7 +12,6 @@ public record ParticipantRegistrationPayload(
         @NotBlank @Size(max = 120) String lastName,
         @NotBlank @Email @Size(max = 160) String email,
         UUID providerId,
-        @Size(max = 160) String externalRegistrationId,
-        OffsetDateTime registrationCreatedAt
+        @Size(max = 160) String externalRegistrationId
 ) {
 }

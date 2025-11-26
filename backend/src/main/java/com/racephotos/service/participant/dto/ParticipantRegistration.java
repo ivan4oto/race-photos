@@ -8,7 +8,6 @@ public record ParticipantRegistration(
         String lastName,
         String email,
         UUID providerId,
-        String externalRegistrationId,
-        OffsetDateTime registrationCreatedAt
+        String externalRegistrationId
 ) {
 }

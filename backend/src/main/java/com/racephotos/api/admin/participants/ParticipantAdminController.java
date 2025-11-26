@@ -70,8 +70,7 @@ public class ParticipantAdminController {
                 payload.lastName(),
                 payload.email(),
                 payload.providerId(),
-                payload.externalRegistrationId(),
-                payload.registrationCreatedAt()
+                payload.externalRegistrationId()
         );
     }
 }

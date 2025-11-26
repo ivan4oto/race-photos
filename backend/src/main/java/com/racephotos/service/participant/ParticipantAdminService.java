@@ -99,7 +99,6 @@ public class ParticipantAdminService {
             participant.setLastName(lastName);
             participant.setEmail(email);
             participant.setExternalRegistrationId(normalize(registration.externalRegistrationId()));
-            participant.setRegistrationCreatedAt(cleanDate(registration.registrationCreatedAt()));
 
             if (registration.providerId() != null) {
                 ParticipantProvider provider = providerRepository.findById(registration.providerId())

@@ -66,9 +66,6 @@ public class Participant {
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
 
-    @Column(name = "registration_created_at")
-    private OffsetDateTime registrationCreatedAt;
-
     @PrePersist
     public void prePersist() {
         Instant now = Instant.now();
@@ -143,14 +140,6 @@ public class Participant {
 
     public void setEmail(String email) {
         this.email = email;
-    }
-
-    public OffsetDateTime getRegistrationCreatedAt() {
-        return registrationCreatedAt;
-    }
-
-    public void setRegistrationCreatedAt(OffsetDateTime registrationCreatedAt) {
-        this.registrationCreatedAt = registrationCreatedAt;
     }
 
     public Instant getCreatedAt() {
