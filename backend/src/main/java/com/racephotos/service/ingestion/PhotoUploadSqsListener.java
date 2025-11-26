@@ -100,30 +100,17 @@ public class PhotoUploadSqsListener {
     }
 
     private Optional<Event> resolveEvent(String objectKey) {
-        List<Event> events = eventRepository.findAll();
-        for (Event event : events) {
-            String prefix = normalizePrefix(event.getUploadPrefix());
-            if (prefix != null && objectKey.startsWith(prefix)) {
-                return Optional.of(event);
-            }
-        }
-        return Optional.empty();
+        String[] parts = objectKey.split("/");
+        UUID eventId = UUID.fromString(parts[1]);
+        return eventRepository.findById(eventId);
     }
 
     private Optional<Photographer> resolvePhotographer(Event event, String objectKey) {
-        String prefix = normalizePrefix(event.getUploadPrefix());
-        if (prefix == null || objectKey.length() <= prefix.length()) {
+        String[] parts = objectKey.split("/");
+        if (parts.length == 0 || parts[2].isBlank()) {
             return Optional.empty();
         }
-        String remainder = objectKey.substring(prefix.length());
-        if (remainder.startsWith("/")) {
-            remainder = remainder.substring(1);
-        }
-        String[] parts = remainder.split("/", 2);
-        if (parts.length == 0 || parts[0].isBlank()) {
-            return Optional.empty();
-        }
-        String slug = parts[0];
+        String slug = parts[2];
         Optional<Photographer> photographer = photographerRepository.findBySlug(slug);
         if (photographer.isPresent()) {
             return photographer;
@@ -149,7 +136,7 @@ public class PhotoUploadSqsListener {
     }
 
     private String decodeKey(String key) {
-        return URLDecoder.decode(key.replace("+", "%2B"), StandardCharsets.UTF_8);
+        return URLDecoder.decode(key, StandardCharsets.UTF_8);
     }
 
     private S3EventNotification parse(String messageBody) {
