@@ -1,0 +1,54 @@
+<section class="page">
+  <div class="hero">
+    <div class="hero-body">
+      <p class="eyebrow">Admin • Providers</p>
+      <h1>Participant providers</h1>
+      <p class="lead">Track registration providers/organizers used for participant imports.</p>
+      <div class="actions">
+        <a routerLink="/admin/providers/new" class="btn primary">Create provider</a>
+        <button type="button" class="btn ghost" (click)="load()" [disabled]="loading()">Refresh</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="alert error" *ngIf="error()">{{ error() }}</div>
+    <div class="card">
+      <header>
+        <div>
+          <h2>Providers</h2>
+          <p>Lightweight table for quick scanning.</p>
+        </div>
+        <div class="badge" *ngIf="!loading()">{{ providers().length }} total</div>
+      </header>
+
+      <div class="empty" *ngIf="!loading() && providers().length === 0 && !error()">
+        <p>No providers yet.</p>
+        <a routerLink="/admin/providers/new" class="btn primary">Create provider</a>
+      </div>
+
+      <div class="table" *ngIf="!loading() && providers().length > 0">
+        <div class="table-head">
+          <span>Name</span>
+          <span>Email</span>
+          <span>Website</span>
+          <span>Created</span>
+        </div>
+        <div class="table-row" *ngFor="let provider of providers()">
+          <div class="stack">
+            <strong>{{ provider.displayName }}</strong>
+            <small>{{ provider.id }}</small>
+          </div>
+          <span>{{ provider.email || '—' }}</span>
+          <span>{{ provider.website || '—' }}</span>
+          <span>{{ formatDate(provider.createdAt) }}</span>
+        </div>
+      </div>
+
+      <div class="loading" *ngIf="loading()">
+        <div class="spinner"></div>
+        <p>Loading providers…</p>
+      </div>
+    </div>
+  </div>
+</section>

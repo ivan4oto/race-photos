@@ -1,0 +1,18 @@
+### Send POST request with json body
+POST http://localhost:8080/api/admin/events/00036c9c-78d2-4be4-a8b4-8bf580734d45/participants/import
+Content-Type: application/json
+Cookie: rp_session=44736A1ACE9198E1FABD574664D83F58
+
+{
+    "registrations": [
+        {
+        "firstName": "John",
+        "lastName": "Doe",
+        "email": "ivan.gotchev@abv.bg",
+        "providerId": "16cbff0c-d31c-40d4-8681-db49aa1c957a",
+        "externalRegistrationId": "9201-132-231"
+        }
+    ]
+}
+
+

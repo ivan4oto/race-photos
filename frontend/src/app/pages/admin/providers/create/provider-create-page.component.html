@@ -1,0 +1,46 @@
+<section class="admin-page">
+  <header class="intro">
+    <div class="intro-inner">
+      <p class="eyebrow">Admin • Providers</p>
+      <h1>Add a participant provider</h1>
+      <p class="lede">
+        Register a registration partner or organizer to track participant imports and link registrations cleanly.
+      </p>
+    </div>
+  </header>
+
+  <div class="form-wrapper">
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <section class="alert success" *ngIf="submissionSuccess()">{{ submissionSuccess() }}</section>
+      <section class="alert error" *ngIf="submissionError()">{{ submissionError() }}</section>
+
+      <div class="form-card">
+        <h2>Provider details</h2>
+        <div class="grid">
+          <label>
+            <span>Display name *</span>
+            <input type="text" formControlName="displayName" placeholder="Example Registration Inc.">
+            <small *ngIf="controlInvalid('displayName')">Display name is required (max 160 chars).</small>
+          </label>
+          <label>
+            <span>Email</span>
+            <input type="email" formControlName="email" placeholder="contact@provider.com">
+            <small *ngIf="controlInvalid('email')">Must be a valid email.</small>
+          </label>
+          <label>
+            <span>Website</span>
+            <input type="url" formControlName="website" placeholder="https://provider.com">
+            <small *ngIf="controlInvalid('website')">Max 255 characters.</small>
+          </label>
+        </div>
+      </div>
+
+      <footer class="actions">
+        <button type="submit" [disabled]="form.invalid || submitting()">
+          {{ submitting() ? 'Saving…' : 'Create provider' }}
+        </button>
+        <p class="helper">Redirects to providers list after creation.</p>
+      </footer>
+    </form>
+  </div>
+</section>
