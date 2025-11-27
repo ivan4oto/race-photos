@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { DEFAULT_UPLOAD_CONFIG } from '../../shared/upload.config';
 import { UploadItem } from '../../shared/upload.types';
 import { S3UploadService } from '../../shared/s3-upload.service';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-upload-page',
@@ -23,8 +24,18 @@ export class UploadPageComponent {
   hasQueued = computed(() => this.items().some(i => i.status === 'queued'));
 
   isUploading = signal(false);
+  pageError = signal<string | null>(null);
+  private readonly eventSlug: string | null;
 
-  constructor(private s3: S3UploadService) {}
+  constructor(
+    private s3: S3UploadService,
+    route: ActivatedRoute
+  ) {
+    this.eventSlug = route.snapshot.paramMap.get('eventSlug');
+    if (!this.eventSlug) {
+      this.pageError.set('Missing event slug in the URL.');
+    }
+  }
 
   onPickFiles(files: FileList | null) {
     if (!files) return;
@@ -36,20 +47,22 @@ export class UploadPageComponent {
       const allowed = acceptedMimeTypes.includes(file.type) || acceptedMimeTypes.length === 0;
       const withinSize = size <= maxFileSizeBytes;
 
-      const key = this.generateKey(name);
-
       if (!allowed) {
-        next.push({ file, key, name, size, status: 'skipped', progress: 0, skippedReason: `Disallowed type: ${file.type || 'unknown'}` });
+        next.push({ file, key: name, name, size, status: 'skipped', progress: 0, skippedReason: `Disallowed type: ${file.type || 'unknown'}` });
       } else if (!withinSize) {
-        next.push({ file, key, name, size, status: 'skipped', progress: 0, skippedReason: `Too large: ${(size/1024/1024).toFixed(1)} MB` });
+        next.push({ file, key: name, name, size, status: 'skipped', progress: 0, skippedReason: `Too large: ${(size/1024/1024).toFixed(1)} MB` });
       } else {
-        next.push({ file, key, name, size, status: 'queued', progress: 0 });
+        next.push({ file, key: name, name, size, status: 'queued', progress: 0 });
       }
     });
     this.items.update(arr => [...arr, ...next]);
   }
 
   async startUpload() {
+    if (!this.eventSlug) {
+      this.items.update(arr => arr.map(i => ({ ...i, status: 'error', errorMessage: 'Missing event slug' })));
+      return;
+    }
     if (this.isUploading()) return;
     this.isUploading.set(true);
     try {
@@ -61,9 +74,9 @@ export class UploadPageComponent {
       for (let i = 0; i < queued.length; i += batchSize) {
         const batch = queued.slice(i, i + batchSize);
         batch.forEach(item => item.status = 'presigning');
-        const names = batch.map(b => b.key);
+        const names = batch.map(b => b.name);
         try {
-          const presignedDtos = await this.s3.presign(names);
+          const presignedDtos = await this.s3.presign(names, this.eventSlug);
           presignedDtos.forEach((dto) => urlMap.set(dto.name, dto.url));
         } catch (e: any) {
           batch.forEach(item => {
@@ -76,7 +89,7 @@ export class UploadPageComponent {
       // Upload sequentially (no concurrency) for items that have URLs
       for (const item of this.items()) {
         if (item.status !== 'presigning' && item.status !== 'queued') continue;
-        const url = urlMap.get(item.key);
+        const url = urlMap.get(item.name);
         if (!url) {
           item.status = 'error';
           item.errorMessage = 'Missing presigned URL';
@@ -111,19 +124,4 @@ export class UploadPageComponent {
     this.startUpload();
   }
 
-  private generateKey(originalName: string): string {
-    // TODO: generate date based on file/photo metadata
-    const raceId = '3';
-    const authorName = 'testgochev';
-    const now = new Date();
-    const yyyy = now.getFullYear();
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
-    const uuid = (globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2));
-    const safeOriginal = originalName
-      .toLowerCase()
-      .replace(/\s+/g, '-')
-      .replace(/[^a-z0-9._-]/g, '');
-    return `in/${raceId}/${authorName}/raw/${safeOriginal}`;
-  }
 }

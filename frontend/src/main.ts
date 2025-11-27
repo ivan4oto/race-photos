@@ -37,7 +37,7 @@ const routes: Routes = [
     title: 'For Photographers — Race Photos'
   },
   {
-    path: 'photographer/upload',
+    path: 'photographer/upload/:eventSlug',
     loadComponent: () => import('./app/pages/photographer-upload/upload-page.component').then(m => m.UploadPageComponent),
     title: 'Upload — Race Photos'
   },

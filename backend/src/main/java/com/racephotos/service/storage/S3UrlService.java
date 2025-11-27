@@ -33,10 +33,16 @@ public class S3UrlService {
         this.expirationSeconds = expirationSeconds;
     }
 
-    public List<UrlEntry> createPresignedPutUrls(List<String> names) {
+    public List<UrlEntry> createPresignedPutUrls(String eventSlug, String photographerSlug, List<String> names) {
         if (bucket == null || bucket.isBlank()) {
             log.error("S3 bucket not configured (aws.s3.bucket is blank)");
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "S3 bucket is not configured");
+        }
+        if (eventSlug == null || eventSlug.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Event slug is required");
+        }
+        if (photographerSlug == null || photographerSlug.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Photographer slug is required");
         }
         if (names == null || names.isEmpty()) {
             log.warn("Request with empty names list rejected");
@@ -47,11 +53,14 @@ public class S3UrlService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Too many names; max 200");
         }
 
-        log.info("Generating {} presigned PUT URLs for bucket '{}' with expiry {}s", names.size(), bucket, expirationSeconds);
+        String basePath = buildBasePath(eventSlug, photographerSlug);
+
+        log.info("Generating {} presigned PUT URLs for bucket '{}' with expiry {}s (base path {})", names.size(), bucket, expirationSeconds, basePath);
 
         List<UrlEntry> result = new ArrayList<>(names.size());
         for (String name : names) {
-            String key = validateKey(name);
+            String safeName = sanitizeFilename(name);
+            String key = basePath + "/" + safeName;
             log.debug("Presigning PUT for key='{}'", key);
 
             PutObjectRequest put = PutObjectRequest.builder()
@@ -68,24 +77,50 @@ public class S3UrlService {
                     .url()
                     .toString();
 
-            result.add(new UrlEntry(key, url));
+            result.add(new UrlEntry(name, url));
         }
         log.info("Generated {} presigned URLs", result.size());
         return result;
     }
 
-    private String validateKey(String name) {
+    private String buildBasePath(String eventSlug, String photographerSlug) {
+        String eventPart = sanitizePathSegment(eventSlug);
+        String photogPart = sanitizePathSegment(photographerSlug);
+        return "in/" + eventPart + "/" + photogPart + "/raw";
+    }
+
+    private String sanitizeFilename(String name) {
         if (name == null || name.isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Object name is blank");
         }
-        String key = name.trim();
-        if (key.startsWith("/")) {
-            key = key.substring(1);
+        String trimmed = name.trim();
+        // Strip any path components to avoid directory traversal
+        int lastSlash = Math.max(trimmed.lastIndexOf('/'), trimmed.lastIndexOf('\\'));
+        if (lastSlash >= 0 && lastSlash < trimmed.length() - 1) {
+            trimmed = trimmed.substring(lastSlash + 1);
         }
-        if (key.isEmpty()) {
+        if (trimmed.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid object name");
         }
-        return key;
+        return trimmed;
+    }
+
+    private String sanitizePathSegment(String segment) {
+        if (segment == null || segment.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Path segment is blank");
+        }
+        String sanitized = segment.trim();
+        while (sanitized.startsWith("/")) {
+            sanitized = sanitized.substring(1);
+        }
+        while (sanitized.endsWith("/")) {
+            sanitized = sanitized.substring(0, sanitized.length() - 1);
+        }
+        sanitized = sanitized.replaceAll("[^a-zA-Z0-9._-]", "-");
+        if (sanitized.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid path segment");
+        }
+        return sanitized;
     }
 
     public record UrlEntry(String name, String url) {}
