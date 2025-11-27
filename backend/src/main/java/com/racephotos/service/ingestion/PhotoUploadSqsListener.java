@@ -101,8 +101,8 @@ public class PhotoUploadSqsListener {
 
     private Optional<Event> resolveEvent(String objectKey) {
         String[] parts = objectKey.split("/");
-        UUID eventId = UUID.fromString(parts[1]);
-        return eventRepository.findById(eventId);
+        String eventSlug = parts[1];
+        return eventRepository.findBySlug(eventSlug);
     }
 
     private Optional<Photographer> resolvePhotographer(Event event, String objectKey) {
