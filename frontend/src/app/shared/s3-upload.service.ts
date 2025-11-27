@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { PresignedDto } from './upload.types';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, map } from 'rxjs';
 import { API_BASE_URL } from './api.config';
 
 
@@ -10,9 +10,11 @@ export class S3UploadService {
   constructor(private http: HttpClient, @Inject(API_BASE_URL) private apiBaseUrl: string) {}
 
 
-  async presign(names: string[]): Promise<PresignedDto[]> {
-    const url = `${this.apiBaseUrl}/s3/presigned-urls`;
-    return await firstValueFrom(this.http.post<PresignedDto[]>(url, names));
+  async presign(names: string[], eventSlug: string): Promise<PresignedDto[]> {
+    const url = `${this.apiBaseUrl}/s3/events/${eventSlug}/presigned-urls`;
+    return await firstValueFrom(
+      this.http.post<{ urls: PresignedDto[] }>(url, { names }).pipe(map(res => res.urls || []))
+    );
   }
 
   uploadWithProgress(presignedUrl: string, file: File, onProgress: (pct: number) => void): Promise<void> {

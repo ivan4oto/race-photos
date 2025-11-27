@@ -2,10 +2,18 @@ package com.racephotos.api.storage;
 
 import com.racephotos.api.storage.dto.S3SignedUrlRequest;
 import com.racephotos.api.storage.dto.S3SignedUrlResponse;
+import com.racephotos.auth.session.SessionUser;
+import com.racephotos.domain.event.Event;
+import com.racephotos.domain.event.EventRepository;
+import com.racephotos.domain.photographer.Photographer;
+import com.racephotos.domain.photographer.PhotographerRepository;
 import com.racephotos.service.storage.S3UrlService;
 import jakarta.validation.Valid;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,16 +24,49 @@ import org.springframework.web.bind.annotation.RestController;
 public class S3Controller {
 
     private final S3UrlService s3UrlService;
+    private final EventRepository eventRepository;
+    private final PhotographerRepository photographerRepository;
 
-    public S3Controller(S3UrlService s3UrlService) {
+    public S3Controller(
+            S3UrlService s3UrlService,
+            EventRepository eventRepository,
+            PhotographerRepository photographerRepository
+    ) {
         this.s3UrlService = s3UrlService;
+        this.eventRepository = eventRepository;
+        this.photographerRepository = photographerRepository;
     }
 
-    @PostMapping(path = "/sign", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(path = "/events/{eventSlug}/presigned-urls", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<S3SignedUrlResponse> generateSignedUrl(
+            @AuthenticationPrincipal SessionUser user,
+            @PathVariable String eventSlug,
             @Valid @RequestBody S3SignedUrlRequest request
     ) {
-        var urls = s3UrlService.createPresignedPutUrls(request.names());
+        if (user == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        Event event = eventRepository.findBySlug(eventSlug)
+                .orElse(null);
+        if (event == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+
+        Photographer photographer = photographerRepository.findByEmailIgnoreCase(user.email())
+                .orElse(null);
+        if (photographer == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        boolean allowed = event.getPhotographers() != null && event.getPhotographers()
+                .stream()
+                .anyMatch(p -> p.getId().equals(photographer.getId()));
+
+        if (!allowed) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        var urls = s3UrlService.createPresignedPutUrls(event.getSlug(), photographer.getSlug(), request.names());
         return ResponseEntity.ok(S3SignedUrlResponse.from(urls));
     }
 }

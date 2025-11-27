@@ -9,6 +9,7 @@ import java.util.UUID;
 public interface PhotographerRepository extends JpaRepository<Photographer, UUID> {
     Optional<Photographer> findBySlug(String slug);
     Optional<Photographer> findByEmail(String email);
+    Optional<Photographer> findByEmailIgnoreCase(String email);
     List<Photographer> findByFirstNameIgnoreCaseAndLastNameIgnoreCase(String firstName, String lastName);
     boolean existsBySlug(String slug);
     boolean existsByEmail(String email);
