@@ -1,5 +1,9 @@
 package com.racephotos.service.ingestion;
 
+import com.racephotos.domain.event.Event;
+import com.racephotos.domain.event.EventRepository;
+import com.racephotos.domain.photo.PhotoAsset;
+import com.racephotos.domain.photo.PhotoAssetRepository;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,12 +20,16 @@ import software.amazon.awssdk.services.rekognition.model.QualityFilter;
 import software.amazon.awssdk.services.rekognition.model.ResourceNotFoundException;
 import software.amazon.awssdk.services.rekognition.model.S3Object;
 
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.Set;
+import java.util.UUID;
 
 @Service
 public class FaceIndexingService {
@@ -31,28 +39,52 @@ public class FaceIndexingService {
 
     private final RekognitionClient rekognitionClient;
     private final FaceMetadataRepository metadataRepository;
+    private final PhotoAssetRepository photoAssetRepository;
+    private final EventRepository eventRepository;
     private final String bucket;
-    private final String collectionPrefix;
-    private final AtomicBoolean collectionEnsured = new AtomicBoolean(false);
+    private final Set<String> ensuredCollections = Collections.synchronizedSet(new HashSet<>());
     private final Object collectionLock = new Object();
 
     public FaceIndexingService(
             RekognitionClient rekognitionClient,
             FaceMetadataRepository metadataRepository,
+            PhotoAssetRepository photoAssetRepository,
+            EventRepository eventRepository,
             @Value("${aws.s3.bucket:}") String bucket,
             @Value("${aws.rekognition.collection-prefix}") String collectionPrefix
     ) {
         this.rekognitionClient = Objects.requireNonNull(rekognitionClient, "rekognitionClient");
         this.metadataRepository = Objects.requireNonNull(metadataRepository, "metadataRepository");
+        this.photoAssetRepository = Objects.requireNonNull(photoAssetRepository, "photoAssetRepository");
+        this.eventRepository = Objects.requireNonNull(eventRepository, "eventRepository");
         this.bucket = bucket;
-        this.collectionPrefix = collectionPrefix;
+    }
+
+    public IndexingReport indexUnindexedPhotoAssets(UUID eventId) {
+        if (eventId == null) {
+            throw new IllegalArgumentException("eventId must not be null");
+        }
+        List<PhotoAsset> assets = photoAssetRepository.findByEventIdAndIndexStatusIsNull(eventId);
+        List<String> keys = assets.stream().map(PhotoAsset::getObjectKey).toList();
+        IndexingReport report = indexFacesForEvent(eventId.toString(), keys);
+        // mark successes
+        Instant now = Instant.now();
+        for (PhotoAsset asset : assets) {
+            if (!report.failedImages().contains(asset.getObjectKey())) {
+                asset.setIndexStatus("SUCCESS");
+                asset.setIndexedAt(now);
+            }
+        }
+        photoAssetRepository.saveAll(assets);
+        return report;
     }
 
     public IndexingReport indexFacesForEvent(String eventId, List<String> objectKeys) {
         validateInput(eventId);
-        String collectionId = getCollectionId(eventId);
+        Event event = eventRepository.findById(UUID.fromString(eventId)).orElseThrow(
+                () -> new IllegalArgumentException("Invalid eventId: " + eventId));
+        String collectionId = event.getVectorCollectionId();
         ensureCollectionExists(collectionId);
-
         Map<String, Integer> facesPerImage = new LinkedHashMap<>();
         List<String> failedKeys = new ArrayList<>();
         int totalFaces = 0;
@@ -124,11 +156,11 @@ public class FaceIndexingService {
     }
 
     private void ensureCollectionExists(String collectionId) {
-        if (collectionEnsured.get()) {
+        if (ensuredCollections.contains(collectionId)) {
             return;
         }
         synchronized (collectionLock) {
-            if (collectionEnsured.get()) {
+            if (ensuredCollections.contains(collectionId)) {
                 return;
             }
             try {
@@ -144,23 +176,17 @@ public class FaceIndexingService {
                         .collectionId(collectionId)
                         .build());
             }
-            collectionEnsured.set(true);
+            ensuredCollections.add(collectionId);
         }
     }
     private void validateInput(String eventId) {
         if (bucket == null || bucket.isBlank()) {
             throw new IllegalStateException("S3 bucket name (aws.s3.bucket) is not configured");
         }
-        if (collectionPrefix == null || collectionPrefix.isBlank()) {
-            throw new IllegalStateException("Rekognition collection prefix (aws.rekognition.prefix) is not configured");
-        }
+
         if (eventId == null || eventId.isBlank()) {
             throw new IllegalArgumentException("eventId must not be blank");
         }
-    }
-
-    private String getCollectionId(String eventId) {
-        return collectionPrefix + ":" + eventId;
     }
 
     private static String buildExternalImageId(String key) {

@@ -64,7 +64,7 @@ export class FaceSearchTestComponent {
     this.errorMessage = '';
     this.matches = [];
 
-    this.http.post<FaceSearchResponse>(`${this.apiBaseUrl}/faces/search`, payload)
+    this.http.post<FaceSearchResponse>(`${this.apiBaseUrl}/search/faces`, payload)
       .pipe(finalize(() => (this.loading = false)))
       .subscribe({
         next: response => {
