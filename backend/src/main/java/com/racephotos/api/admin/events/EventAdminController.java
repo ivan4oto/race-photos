@@ -71,7 +71,7 @@ public class EventAdminController {
             @PathVariable UUID eventId
     ) {
         Event event = eventAdminService.getEvent(eventId);
-        return ResponseEntity.ok(EventDetailResponse.from(event));
+        return ResponseEntity.ok(toDetailResponse(event));
     }
 
     @PutMapping(path = "/{eventId}", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -82,7 +82,7 @@ public class EventAdminController {
     ) {
         // TODO: use user when auditing updates.
         Event updated = eventAdminService.updateEvent(request.toCommand(eventId));
-        return ResponseEntity.ok(EventDetailResponse.from(updated));
+        return ResponseEntity.ok(toDetailResponse(updated));
     }
 
     @PostMapping(path = "/{eventId}/photographers", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -92,7 +92,7 @@ public class EventAdminController {
             @Valid @RequestBody AddPhotographerToEventRequest request
     ) {
         Event updated = eventAdminService.addPhotographer(eventId, request.toCommand());
-        return ResponseEntity.ok(EventDetailResponse.from(updated));
+        return ResponseEntity.ok(toDetailResponse(updated));
     }
 
     @DeleteMapping("/{eventId}/photographers/{photographerId}")
@@ -103,5 +103,10 @@ public class EventAdminController {
     ) {
         eventAdminService.removePhotographer(eventId, photographerId);
         return ResponseEntity.noContent().build();
+    }
+
+    private EventDetailResponse toDetailResponse(Event event) {
+        var summary = eventAdminService.getPhotoAssetSummary(event.getId());
+        return EventDetailResponse.from(event, summary.indexedPhotoCount(), summary.unindexedPhotoCount());
     }
 }

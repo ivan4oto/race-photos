@@ -186,6 +186,32 @@
         </label>
       </section>
 
+      <section class="card">
+        <header>
+          <h2>Photo assets</h2>
+          <p>Track indexing progress and kick off face indexing for this event.</p>
+        </header>
+
+        <div class="photo-stats">
+          <div class="stat">
+            <p class="label">Indexed photos</p>
+            <p class="value">{{ photoStats().indexed | number }}</p>
+          </div>
+          <div class="stat">
+            <p class="label">Waiting to index</p>
+            <p class="value">{{ photoStats().unindexed | number }}</p>
+          </div>
+        </div>
+
+        <div class="indexing-actions">
+          <button type="button" class="btn primary" (click)="indexFaces()" [disabled]="indexing() || !eventId">
+            {{ indexing() ? 'Starting indexing…' : 'Index faces now' }}
+          </button>
+          <div class="alert success" *ngIf="indexingSuccess()">{{ indexingSuccess() }}</div>
+          <div class="alert error" *ngIf="indexingError()">{{ indexingError() }}</div>
+        </div>
+      </section>
+
       <section class="card assignments">
         <header>
           <h2>Photographer assignments</h2>

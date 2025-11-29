@@ -10,4 +10,6 @@ public interface PhotoAssetRepository extends JpaRepository<PhotoAsset, UUID> {
     Optional<PhotoAsset> findByBucketAndObjectKey(String bucket, String objectKey);
     boolean existsByBucketAndObjectKey(String bucket, String objectKey);
     List<PhotoAsset> findByEventIdAndIndexStatusIsNull(UUID eventId);
+    long countByEventIdAndIndexStatusIsNull(UUID eventId);
+    long countByEventIdAndIndexStatusIsNotNull(UUID eventId);
 }
