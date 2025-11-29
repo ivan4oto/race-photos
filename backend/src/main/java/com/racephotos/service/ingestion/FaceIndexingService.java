@@ -64,37 +64,28 @@ public class FaceIndexingService {
         if (eventId == null) {
             throw new IllegalArgumentException("eventId must not be null");
         }
-        List<PhotoAsset> assets = photoAssetRepository.findByEventIdAndIndexStatusIsNull(eventId);
-        List<String> keys = assets.stream().map(PhotoAsset::getObjectKey).toList();
-        IndexingReport report = indexFacesForEvent(eventId.toString(), keys);
-        // mark successes
-        Instant now = Instant.now();
-        for (PhotoAsset asset : assets) {
-            if (!report.failedImages().contains(asset.getObjectKey())) {
-                asset.setIndexStatus("SUCCESS");
-                asset.setIndexedAt(now);
-            }
-        }
-        photoAssetRepository.saveAll(assets);
-        return report;
-    }
-
-    public IndexingReport indexFacesForEvent(String eventId, List<String> objectKeys) {
-        validateInput(eventId);
-        Event event = eventRepository.findById(UUID.fromString(eventId)).orElseThrow(
+        Event event = eventRepository.findById(eventId).orElseThrow(
                 () -> new IllegalArgumentException("Invalid eventId: " + eventId));
         String collectionId = event.getVectorCollectionId();
         ensureCollectionExists(collectionId);
+        List<PhotoAsset> assets = photoAssetRepository.findByEventIdAndIndexStatusIsNull(eventId);
+
+        int requested = assets.size();
+        int successful = 0;
+        int totalFaces = 0;
         Map<String, Integer> facesPerImage = new LinkedHashMap<>();
         List<String> failedKeys = new ArrayList<>();
-        int totalFaces = 0;
 
-        for (String key : objectKeys) {
+        for (PhotoAsset asset : assets) {
+            String key = asset.getObjectKey();
             if (key == null || key.isBlank()) {
                 log.warn("Skipping blank S3 key");
                 failedKeys.add(key == null ? "<null>" : key);
+                asset.setIndexStatus("FAILED");
+                photoAssetRepository.save(asset);
                 continue;
             }
+
             String normalizedKey = key.trim();
             try {
                 IndexFacesResponse response = indexFacesForImage(collectionId, normalizedKey);
@@ -104,20 +95,25 @@ public class FaceIndexingService {
                 totalFaces += facesIndexed;
                 if (faceRecords != null) {
                     for (FaceRecord record : faceRecords) {
-                        storeMetadata(collectionId, eventId, normalizedKey, record);
+                        storeMetadata(collectionId, eventId.toString(), normalizedKey, record);
                     }
                 }
+                asset.setIndexStatus("SUCCESS");
+                asset.setIndexedAt(Instant.now());
+                photoAssetRepository.save(asset);
+                successful++;
                 log.info("Indexed {} faces for event={} key={} (model v{})", facesIndexed, eventId, normalizedKey, response.faceModelVersion());
             } catch (SdkException e) {
                 log.error("Failed to index faces for event={} key={}: {}", eventId, normalizedKey, e.getMessage());
                 failedKeys.add(normalizedKey);
+                asset.setIndexStatus("FAILED");
+                photoAssetRepository.save(asset);
             }
         }
 
-        int successfulImages = objectKeys.size() - failedKeys.size();
         return new IndexingReport(
-                objectKeys.size(),
-                successfulImages,
+                requested,
+                successful,
                 totalFaces,
                 Map.copyOf(facesPerImage),
                 List.copyOf(failedKeys)
@@ -177,15 +173,6 @@ public class FaceIndexingService {
                         .build());
             }
             ensuredCollections.add(collectionId);
-        }
-    }
-    private void validateInput(String eventId) {
-        if (bucket == null || bucket.isBlank()) {
-            throw new IllegalStateException("S3 bucket name (aws.s3.bucket) is not configured");
-        }
-
-        if (eventId == null || eventId.isBlank()) {
-            throw new IllegalArgumentException("eventId must not be blank");
         }
     }
 
