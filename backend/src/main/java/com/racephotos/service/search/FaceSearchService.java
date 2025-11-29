@@ -1,9 +1,13 @@
 package com.racephotos.service.search;
 
+import com.racephotos.domain.event.Event;
+import com.racephotos.domain.event.EventRepository;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.services.rekognition.RekognitionClient;
 import software.amazon.awssdk.services.rekognition.model.BoundingBox;
@@ -14,10 +18,7 @@ import software.amazon.awssdk.services.rekognition.model.SearchFacesByImageReque
 import software.amazon.awssdk.services.rekognition.model.SearchFacesByImageResponse;
 import software.amazon.awssdk.services.rekognition.model.S3Object;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import com.racephotos.service.ingestion.FaceMetadataRepository;
 
@@ -28,6 +29,7 @@ public class FaceSearchService {
 
     private final RekognitionClient rekognitionClient;
     private final FaceMetadataRepository metadataRepository;
+    private final EventRepository eventRepository;
     private final String bucket;
     private final String collectionPrefix;
     private final Integer maxFaces;
@@ -35,7 +37,7 @@ public class FaceSearchService {
 
     public FaceSearchService(
             RekognitionClient rekognitionClient,
-            FaceMetadataRepository metadataRepository,
+            FaceMetadataRepository metadataRepository, EventRepository eventRepository,
             @Value("${aws.s3.bucket:}") String bucket,
             @Value("${aws.rekognition.collection-prefix}") String collectionPrefix,
             @Value("${aws.rekognition.search.max-faces}") Integer maxFaces,
@@ -43,6 +45,7 @@ public class FaceSearchService {
     ) {
         this.rekognitionClient = Objects.requireNonNull(rekognitionClient, "rekognitionClient");
         this.metadataRepository = Objects.requireNonNull(metadataRepository, "metadataRepository");
+        this.eventRepository = Objects.requireNonNull(eventRepository, "eventRepository");
         this.bucket = bucket;
         this.collectionPrefix = collectionPrefix;
         this.maxFaces = maxFaces;
@@ -53,7 +56,8 @@ public class FaceSearchService {
         long startNanos = System.nanoTime();
         log.debug("Starting face search for event {} and probe key {}", eventId, photoKey);
         String normalizedKey = validateInputs(eventId, photoKey);
-        String collectionId = this.collectionPrefix + ":" + eventId;
+        Event event = eventRepository.findById(UUID.fromString(eventId)).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found"));
+        String collectionId = event.getVectorCollectionId();
         SearchFacesByImageResponse response = runSearch(normalizedKey, collectionId);
 
         Map<String, Match> matchesByPhoto = new LinkedHashMap<>();
@@ -118,7 +122,7 @@ public class FaceSearchService {
 
     private SearchFacesByImageResponse runSearch(String photoKey, String collectionId) {
         try {
-            SearchFacesByImageRequest.Builder builder = SearchFacesByImageRequest.builder()
+            SearchFacesByImageRequest.Builder searchFacesRequest = SearchFacesByImageRequest.builder()
                     .collectionId(collectionId)
                     .image(Image.builder()
                             .s3Object(S3Object.builder()
@@ -128,10 +132,10 @@ public class FaceSearchService {
                             .build());
 
             if (maxFaces != null) {
-                builder.maxFaces(maxFaces);
+                searchFacesRequest.maxFaces(maxFaces);
             }
             if (similarityThreshold != null) {
-                builder.faceMatchThreshold(similarityThreshold);
+                searchFacesRequest.faceMatchThreshold(similarityThreshold);
             }
 
             log.debug(
@@ -142,7 +146,7 @@ public class FaceSearchService {
                     maxFaces,
                     similarityThreshold
             );
-            return rekognitionClient.searchFacesByImage(builder.build());
+            return rekognitionClient.searchFacesByImage(searchFacesRequest.build());
         } catch (SdkException e) {
             log.error("searchFacesByImage failed for key {}", photoKey, e);
             throw e;

@@ -49,6 +49,12 @@ public class PhotoAsset {
     @Column(name = "uploaded_at", nullable = false)
     private Instant uploadedAt;
 
+    @Column(name = "indexed_at")
+    private Instant indexedAt;
+
+    @Column(name = "index_status", length = 30)
+    private String indexStatus;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
@@ -124,6 +130,22 @@ public class PhotoAsset {
 
     public void setUploadedAt(Instant uploadedAt) {
         this.uploadedAt = uploadedAt;
+    }
+
+    public Instant getIndexedAt() {
+        return indexedAt;
+    }
+
+    public void setIndexedAt(Instant indexedAt) {
+        this.indexedAt = indexedAt;
+    }
+
+    public String getIndexStatus() {
+        return indexStatus;
+    }
+
+    public void setIndexStatus(String indexStatus) {
+        this.indexStatus = indexStatus;
     }
 
     public Instant getCreatedAt() {
