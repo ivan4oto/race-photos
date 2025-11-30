@@ -27,9 +27,13 @@ export class EventListPageComponent implements OnInit {
     try {
       const response = await this.eventAdminService.listEvents();
       this.events.set(response);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      this.error.set('Unable to load events right now.');
+      if (err.status === 403) {
+        this.error.set('You do not have permission to view events.');
+      } else {
+        this.error.set('Unable to load events right now.');
+      }
     } finally {
       this.loading.set(false);
     }

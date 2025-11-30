@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.EnumSet;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -33,10 +34,15 @@ public class UserService {
         User user = userRepository.findByCognitoSub(sub).orElseGet(() -> {
             User created = new User();
             created.setCognitoSub(sub);
+            created.setRoles(EnumSet.of(Role.BASIC));
             return created;
         });
 
         boolean dirty = user.getId() == null;
+        if (user.getRoles() == null || user.getRoles().isEmpty()) {
+            user.setRoles(EnumSet.of(Role.BASIC));
+            dirty = true;
+        }
         dirty |= setIfChanged(user::getEmail, user::setEmail, email);
         dirty |= setIfChanged(user::getFirstName, user::setFirstName, normalize(cognitoUser.givenName()));
         dirty |= setIfChanged(user::getFamilyName, user::setFamilyName, normalize(cognitoUser.familyName()));

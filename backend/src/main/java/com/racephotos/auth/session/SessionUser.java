@@ -2,6 +2,10 @@ package com.racephotos.auth.session;
 
 import com.racephotos.auth.user.User;
 
+import com.racephotos.auth.user.Role;
+import java.io.Serializable;
+import java.util.Collections;
+import java.util.Set;
 import java.util.UUID;
 
 public record SessionUser(
@@ -10,11 +14,16 @@ public record SessionUser(
     String email,
     String givenName,
     String familyName,
-    String profilePictureUrl
-) {
+    String profilePictureUrl,
+    Set<Role> roles
+) implements Serializable {
     public static SessionUser from(User user) {
         if (user == null) {
             return null;
+        }
+        Set<Role> roles = user.getRoles();
+        if (roles == null || roles.isEmpty()) {
+            roles = Set.of(Role.BASIC);
         }
         return new SessionUser(
             user.getId(),
@@ -22,7 +31,8 @@ public record SessionUser(
             user.getEmail(),
             user.getFirstName(),
             user.getFamilyName(),
-            user.getProfilePictureUrl()
+            user.getProfilePictureUrl(),
+            Collections.unmodifiableSet(roles)
         );
     }
 }
