@@ -9,6 +9,8 @@ import com.racephotos.domain.photographer.Photographer;
 import com.racephotos.domain.photographer.PhotographerRepository;
 import com.racephotos.service.storage.S3UrlService;
 import jakarta.validation.Valid;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping(path = "/api/s3", produces = MediaType.APPLICATION_JSON_VALUE)
 public class S3Controller {
+    private static final Logger log = LogManager.getLogger(S3Controller.class);
 
     private final S3UrlService s3UrlService;
     private final EventRepository eventRepository;
@@ -55,6 +58,7 @@ public class S3Controller {
         Photographer photographer = photographerRepository.findByEmailIgnoreCase(user.email())
                 .orElse(null);
         if (photographer == null) {
+            log.warn("User {} attempted to upload photos for event {} but photographer does not exist for this email.", user.email(), eventSlug);
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
@@ -63,6 +67,7 @@ public class S3Controller {
                 .anyMatch(p -> p.getId().equals(photographer.getId()));
 
         if (!allowed) {
+            log.warn("User {} attempted to upload photos for event {} but is not a photographer for this event.", user.email(), eventSlug);
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
