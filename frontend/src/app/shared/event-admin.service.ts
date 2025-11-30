@@ -72,6 +72,8 @@ export interface EventDetail extends CreateEventRequest {
   id: string;
   createdAt: string;
   updatedAt: string;
+  indexedPhotoCount: number;
+  unindexedPhotoCount: number;
   photographers: PhotographerSummary[];
 }
 
@@ -119,5 +121,10 @@ export class EventAdminService {
   removePhotographerFromEvent(eventId: string, photographerId: string): Promise<void> {
     const url = `${this.apiBaseUrl}/admin/events/${eventId}/photographers/${photographerId}`;
     return firstValueFrom(this.http.delete<void>(url));
+  }
+
+  indexFacesForEvent(eventId: string): Promise<void> {
+    const url = `${this.apiBaseUrl}/admin/events/${eventId}/index-faces`;
+    return firstValueFrom(this.http.post<void>(url, {}));
   }
 }

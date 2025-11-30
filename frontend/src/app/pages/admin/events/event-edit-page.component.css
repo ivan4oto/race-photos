@@ -121,6 +121,38 @@
   }
 }
 
+.photo-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin: 12px 0 16px;
+}
+
+.stat {
+  border: 1px solid #e7ecf7;
+  background: #fbfcff;
+  padding: 12px 14px;
+  border-radius: 12px;
+}
+
+.stat .label {
+  margin: 0 0 6px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.stat .value {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.indexing-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 @media (max-width: 900px) {
   .assignment-grid {
     grid-template-columns: 1fr;

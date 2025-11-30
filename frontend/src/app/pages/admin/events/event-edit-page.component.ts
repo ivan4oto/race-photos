@@ -44,6 +44,10 @@ export class EventEditPageComponent implements OnInit {
   submissionSuccess = signal<string | null>(null);
   assigning = signal(false);
   assignmentError = signal<string | null>(null);
+  indexing = signal(false);
+  indexingError = signal<string | null>(null);
+  indexingSuccess = signal<string | null>(null);
+  photoStats = signal<{ indexed: number; unindexed: number }>({ indexed: 0, unindexed: 0 });
 
   eventId: string | null = null;
   photographers = signal<PhotographerSummary[]>([]);
@@ -136,6 +140,10 @@ export class EventEditPageComponent implements OnInit {
 
   private applyEvent(event: EventDetail): void {
     this.photographers.set(event.photographers ?? []);
+    this.photoStats.set({
+      indexed: event.indexedPhotoCount ?? 0,
+      unindexed: event.unindexedPhotoCount ?? 0,
+    });
     this.form.patchValue({
       slug: event.slug,
       name: event.name,
@@ -226,6 +234,26 @@ export class EventEditPageComponent implements OnInit {
       this.assignmentError.set('Unable to add photographer. Check the identifier and try again.');
     } finally {
       this.assigning.set(false);
+    }
+  }
+
+  async indexFaces(): Promise<void> {
+    if (!this.eventId) {
+      return;
+    }
+    this.indexingError.set(null);
+    this.indexingSuccess.set(null);
+    this.indexing.set(true);
+    try {
+      await this.eventAdminService.indexFacesForEvent(this.eventId);
+      const refreshed = await this.eventAdminService.getEvent(this.eventId);
+      this.applyEvent(refreshed);
+      this.indexingSuccess.set('Indexing started. Stats will refresh once complete.');
+    } catch (err) {
+      console.error(err);
+      this.indexingError.set('Unable to start indexing right now.');
+    } finally {
+      this.indexing.set(false);
     }
   }
 

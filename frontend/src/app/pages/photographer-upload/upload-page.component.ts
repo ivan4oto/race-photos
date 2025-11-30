@@ -22,6 +22,20 @@ export class UploadPageComponent {
   errorCount = computed(() => this.items().filter(i => i.status === 'error').length);
   skippedCount = computed(() => this.items().filter(i => i.status === 'skipped').length);
   hasQueued = computed(() => this.items().some(i => i.status === 'queued'));
+  overallProgress = computed(() => {
+    const all = this.items();
+    if (all.length === 0) return 0;
+    const portion = all.reduce((acc, item) => {
+      if (['success', 'error', 'skipped'].includes(item.status)) {
+        return acc + 1;
+      }
+      if (item.status === 'uploading') {
+        return acc + (item.progress ?? 0) / 100;
+      }
+      return acc;
+    }, 0);
+    return Math.round((portion / all.length) * 100);
+  });
 
   isUploading = signal(false);
   pageError = signal<string | null>(null);
@@ -58,6 +72,11 @@ export class UploadPageComponent {
     this.items.update(arr => [...arr, ...next]);
   }
 
+  private emitItems() {
+    // Shallow copy to trigger signal change detection after in-place mutations.
+    this.items.set([...this.items()]);
+  }
+
   async startUpload() {
     if (!this.eventSlug) {
       this.items.update(arr => arr.map(i => ({ ...i, status: 'error', errorMessage: 'Missing event slug' })));
@@ -74,6 +93,7 @@ export class UploadPageComponent {
       for (let i = 0; i < queued.length; i += batchSize) {
         const batch = queued.slice(i, i + batchSize);
         batch.forEach(item => item.status = 'presigning');
+        this.emitItems();
         const names = batch.map(b => b.name);
         try {
           const presignedDtos = await this.s3.presign(names, this.eventSlug);
@@ -83,6 +103,7 @@ export class UploadPageComponent {
             item.status = 'error';
             item.errorMessage = 'Presign failed';
           });
+          this.emitItems();
         }
       }
 
@@ -93,13 +114,19 @@ export class UploadPageComponent {
         if (!url) {
           item.status = 'error';
           item.errorMessage = 'Missing presigned URL';
+          this.emitItems();
           continue;
         }
         item.status = 'uploading';
         item.progress = 0;
+        this.emitItems();
         try {
           await this.s3.uploadWithProgress(url, item.file, pct => {
-            item.progress = pct;
+            const rounded = Math.round(pct);
+            if (rounded !== item.progress) {
+              item.progress = rounded;
+              this.emitItems();
+            }
           });
           item.status = 'success';
           item.progress = 100;
@@ -107,9 +134,8 @@ export class UploadPageComponent {
           item.status = 'error';
           item.errorMessage = err?.message || 'Upload failed';
         }
+        this.emitItems();
       }
-      // trigger signal change
-      this.items.set([...this.items()]);
     } finally {
       this.isUploading.set(false);
     }

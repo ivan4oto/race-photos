@@ -24,6 +24,12 @@
       <span>•</span>
       <span><strong>{{ skippedCount() }}</strong> skipped</span>
     </div>
+    <div *ngIf="items().length > 0" class="overall-progress">
+      <div class="progress overall">
+        <div class="bar" [style.width.%]="overallProgress()"></div>
+      </div>
+      <div class="progress-label">{{ overallProgress() }}% complete</div>
+    </div>
 
     <div class="list" *ngIf="items().length > 0">
       <div class="row" *ngFor="let item of items()">

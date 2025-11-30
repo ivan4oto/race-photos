@@ -37,9 +37,11 @@ public record EventDetailResponse(
         String participantMessage,
         Instant createdAt,
         Instant updatedAt,
+        long indexedPhotoCount,
+        long unindexedPhotoCount,
         List<PhotographerSummaryResponse> photographers
 ) {
-    public static EventDetailResponse from(Event event) {
+    public static EventDetailResponse from(Event event, long indexedPhotoCount, long unindexedPhotoCount) {
         return new EventDetailResponse(
                 event.getId(),
                 event.getSlug(),
@@ -66,6 +68,8 @@ public record EventDetailResponse(
                 event.getParticipantMessage(),
                 event.getCreatedAt(),
                 event.getUpdatedAt(),
+                indexedPhotoCount,
+                unindexedPhotoCount,
                 event.getPhotographers()
                         .stream()
                         .map(PhotographerSummaryResponse::from)

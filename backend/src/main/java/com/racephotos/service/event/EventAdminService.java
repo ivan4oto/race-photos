@@ -8,6 +8,7 @@ import com.racephotos.domain.event.EventRepository;
 import com.racephotos.domain.event.EventStatus;
 import com.racephotos.domain.photographer.Photographer;
 import com.racephotos.domain.photographer.PhotographerRepository;
+import com.racephotos.domain.photo.PhotoAssetRepository;
 import com.racephotos.service.event.dto.AccessPolicyData;
 import com.racephotos.service.event.dto.CreateEventCommand;
 import com.racephotos.service.event.dto.UpdateEventCommand;
@@ -34,13 +35,16 @@ public class EventAdminService {
 
     private final EventRepository eventRepository;
     private final PhotographerRepository photographerRepository;
+    private final PhotoAssetRepository photoAssetRepository;
 
     public EventAdminService(
             EventRepository eventRepository,
-            PhotographerRepository photographerRepository
+            PhotographerRepository photographerRepository,
+            PhotoAssetRepository photoAssetRepository
     ) {
         this.eventRepository = Objects.requireNonNull(eventRepository, "eventRepository");
         this.photographerRepository = Objects.requireNonNull(photographerRepository, "photographerRepository");
+        this.photoAssetRepository = Objects.requireNonNull(photoAssetRepository, "photoAssetRepository");
     }
 
     @Transactional
@@ -197,6 +201,16 @@ public class EventAdminService {
         log.info("Removed photographer {} from event {}", photographerId, eventId);
     }
 
+    @Transactional(readOnly = true)
+    public PhotoAssetSummary getPhotoAssetSummary(UUID eventId) {
+        if (eventId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Event id is required");
+        }
+        long indexed = photoAssetRepository.countByEventIdAndIndexStatusIsNotNull(eventId);
+        long unindexed = photoAssetRepository.countByEventIdAndIndexStatusIsNull(eventId);
+        return new PhotoAssetSummary(indexed, unindexed);
+    }
+
     private void applyPricing(Event event, PricingProfileData data) {
         PricingProfile profile = event.getDefaultPricing();
         if (profile == null) {
@@ -276,4 +290,6 @@ public class EventAdminService {
         String normalized = normalize(email);
         return normalized == null ? null : normalized.toLowerCase();
     }
+
+    public record PhotoAssetSummary(long indexedPhotoCount, long unindexedPhotoCount) { }
 }
