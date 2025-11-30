@@ -4,6 +4,7 @@
     <nav class="nav">
       <a routerLink="/photographer" routerLinkActive="active">Photographers</a>
       <a routerLink="/participants" routerLinkActive="active">Participants</a>
+      <a *ngIf="isAdmin()" routerLink="/admin" routerLinkActive="active">Admin</a>
     </nav>
     <div class="auth-controls" *ngIf="authSession.user(); else signInLink">
       <div class="user-pill">
