@@ -16,4 +16,9 @@ export class HeaderComponent {
   async onSignOut(): Promise<void> {
     await this.authSession.signOut();
   }
+
+  protected isAdmin(): boolean {
+    const roles = this.authSession.user()?.roles;
+    return Array.isArray(roles) && roles.includes('ADMIN');
+  }
 }

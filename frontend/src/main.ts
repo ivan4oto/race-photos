@@ -6,6 +6,7 @@ import { AppComponent } from './app/app.component';
 import { provideApiBaseUrl } from './app/shared/api.config';
 import { environment } from './environments/environment';
 import { apiCredentialsInterceptor } from './app/shared/api-credentials.interceptor';
+import { adminGuard } from './app/shared/auth/admin.guard';
 
 Amplify.configure({
   Auth: {
@@ -54,47 +55,56 @@ const routes: Routes = [
   {
     path: 'admin/photographers/new',
     loadComponent: () => import('./app/pages/admin/photographers/create/photographer-create-page.component').then(m => m.PhotographerCreatePageComponent),
-    title: 'Create Photographer — Race Photos'
+    title: 'Create Photographer — Race Photos',
+    canMatch: [adminGuard]
   },
   {
     path: 'admin/providers/new',
     loadComponent: () => import('./app/pages/admin/providers/create/provider-create-page.component').then(m => m.ProviderCreatePageComponent),
-    title: 'Create Provider — Race Photos'
+    title: 'Create Provider — Race Photos',
+    canMatch: [adminGuard]
   },
   {
     path: 'admin/providers',
     loadComponent: () => import('./app/pages/admin/providers/list/provider-list-page.component').then(m => m.ProviderListPageComponent),
-    title: 'Providers — Race Photos'
+    title: 'Providers — Race Photos',
+    canMatch: [adminGuard]
   },
   {
     path: 'admin',
     loadComponent: () => import('./app/pages/admin/admin-home.component').then(m => m.AdminHomeComponent),
-    title: 'Admin — Race Photos'
+    title: 'Admin — Race Photos',
+    canMatch: [adminGuard]
   },
   {
     path: 'admin/photographers',
     loadComponent: () => import('./app/pages/admin/photographers/list/photographer-list-page.component').then(m => m.PhotographerListPageComponent),
-    title: 'Photographers — Race Photos'
+    title: 'Photographers — Race Photos',
+    canMatch: [adminGuard]
   },
   {
     path: 'admin/photographers/:photographerId',
     loadComponent: () => import('./app/pages/admin/photographers/edit/photographer-edit-page.component').then(m => m.PhotographerEditPageComponent),
-    title: 'Edit Photographer — Race Photos'
+    title: 'Edit Photographer — Race Photos',
+    canMatch: [adminGuard]
   },
   {
     path: 'admin/events/new',
     loadComponent: () => import('./app/pages/admin/events/event-create-page.component').then(m => m.EventCreatePageComponent),
-    title: 'Create Event — Race Photos'
+    title: 'Create Event — Race Photos',
+    canMatch: [adminGuard]
   },
   {
     path: 'admin/events',
     loadComponent: () => import('./app/pages/admin/events/event-list-page.component').then(m => m.EventListPageComponent),
-    title: 'Events — Race Photos'
+    title: 'Events — Race Photos',
+    canMatch: [adminGuard]
   },
   {
     path: 'admin/events/:eventId',
     loadComponent: () => import('./app/pages/admin/events/event-edit-page.component').then(m => m.EventEditPageComponent),
-    title: 'Edit Event — Race Photos'
+    title: 'Edit Event — Race Photos',
+    canMatch: [adminGuard]
   },
   {
     path: 'signin',

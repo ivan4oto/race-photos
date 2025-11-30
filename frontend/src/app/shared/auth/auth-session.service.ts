@@ -10,6 +10,7 @@ export interface AuthenticatedUser {
   picture?: string;
   givenName?: string;
   familyName?: string;
+  roles?: string[];
 }
 
 type SessionStatus = 'idle' | 'linking' | 'error';

@@ -1,8 +1,10 @@
 package com.racephotos.auth.session;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import com.racephotos.auth.user.Role;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,7 +28,12 @@ public class SessionAuthenticationFilter extends OncePerRequestFilter {
             if (session != null) {
                 SessionUser user = (SessionUser) session.getAttribute(SessionAttributes.USER);
                 if (user != null) {
-                    var authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
+                    var roles = user.roles() == null || user.roles().isEmpty()
+                        ? Set.of(Role.BASIC)
+                        : user.roles();
+                    var authorities = roles.stream()
+                        .map(role -> new SimpleGrantedAuthority(role.asAuthority()))
+                        .collect(Collectors.toList());
                     var authentication = new UsernamePasswordAuthenticationToken(user, null, authorities);
                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authentication);
