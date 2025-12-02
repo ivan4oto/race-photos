@@ -1,7 +1,7 @@
 ### Send POST request with json body
-POST http://localhost:8080/api/admin/events/00036c9c-78d2-4be4-a8b4-8bf580734d45/participants/import
+POST http://localhost:8080/api/admin/events/7d7e541c-b071-4dc2-aa7e-2b342fea6d88/participants/import
 Content-Type: application/json
-Cookie: rp_session=44736A1ACE9198E1FABD574664D83F58
+Cookie: rp_session=ED67B0E827652582ABA947476BE38030
 
 {
     "registrations": [
@@ -10,8 +10,15 @@ Cookie: rp_session=44736A1ACE9198E1FABD574664D83F58
         "lastName": "Doe",
         "email": "ivan.gotchev@abv.bg",
         "providerId": "16cbff0c-d31c-40d4-8681-db49aa1c957a",
-        "externalRegistrationId": "9201-132-231"
-        }
+        "externalRegistrationId": "1111-111-111"
+        },
+          {
+            "firstName": "Ivan",
+            "lastName": "Gochev",
+            "email": "ivan.gotchev94@gmail.bg",
+            "providerId": "16cbff0c-d31c-40d4-8681-db49aa1c957a",
+            "externalRegistrationId": "2222-222-222"
+          }
     ]
 }
 

@@ -15,7 +15,8 @@ public record SessionUser(
     String givenName,
     String familyName,
     String profilePictureUrl,
-    Set<Role> roles
+    Set<Role> roles,
+    Set<UUID> accessibleEventIds
 ) implements Serializable {
     public static SessionUser from(User user) {
         if (user == null) {
@@ -32,7 +33,8 @@ public record SessionUser(
             user.getFirstName(),
             user.getFamilyName(),
             user.getProfilePictureUrl(),
-            Collections.unmodifiableSet(roles)
+            Collections.unmodifiableSet(roles),
+            Collections.unmodifiableSet(user.getActiveEventAccessIds())
         );
     }
 }

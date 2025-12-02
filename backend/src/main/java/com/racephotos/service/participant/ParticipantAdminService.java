@@ -2,6 +2,9 @@ package com.racephotos.service.participant;
 
 import com.racephotos.auth.user.User;
 import com.racephotos.auth.user.UserRepository;
+import com.racephotos.auth.user.EventAccessGrant;
+import com.racephotos.auth.user.EventAccessGrantRepository;
+import com.racephotos.auth.user.AccessGrantStatus;
 import com.racephotos.domain.event.Event;
 import com.racephotos.domain.event.EventRepository;
 import com.racephotos.domain.participant.Participant;
@@ -31,17 +34,20 @@ public class ParticipantAdminService {
     private final ParticipantRepository participantRepository;
     private final ParticipantProviderRepository providerRepository;
     private final UserRepository userRepository;
+    private final EventAccessGrantRepository accessGrantRepository;
 
     public ParticipantAdminService(
             EventRepository eventRepository,
             ParticipantRepository participantRepository,
             ParticipantProviderRepository providerRepository,
-            UserRepository userRepository
+            UserRepository userRepository,
+            EventAccessGrantRepository accessGrantRepository
     ) {
         this.eventRepository = Objects.requireNonNull(eventRepository, "eventRepository");
         this.participantRepository = Objects.requireNonNull(participantRepository, "participantRepository");
         this.providerRepository = Objects.requireNonNull(providerRepository, "providerRepository");
         this.userRepository = Objects.requireNonNull(userRepository, "userRepository");
+        this.accessGrantRepository = Objects.requireNonNull(accessGrantRepository, "accessGrantRepository");
     }
 
     @Transactional
@@ -83,6 +89,7 @@ public class ParticipantAdminService {
 
             if (existing.isPresent()) {
                 unchanged++;
+                ensureAccessGrant(eventId, email);
                 outcomes.add(new ParticipantIngestResult.RegistrationOutcome(
                         ParticipantIngestResult.RegistrationStatus.UNCHANGED,
                         registration.externalRegistrationId(),
@@ -100,6 +107,8 @@ public class ParticipantAdminService {
             participant.setEmail(email);
             participant.setExternalRegistrationId(normalize(registration.externalRegistrationId()));
 
+            User linkedUser = userRepository.findByEmailIgnoreCase(email).orElse(null);
+
             if (registration.providerId() != null) {
                 ParticipantProvider provider = providerRepository.findById(registration.providerId())
                         .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Provider not found"));
@@ -107,9 +116,12 @@ public class ParticipantAdminService {
             }
 
             // link to User if email matches
-            userRepository.findByEmailIgnoreCase(email).ifPresent(participant::setUser);
+            if (linkedUser != null) {
+                participant.setUser(linkedUser);
+            }
 
             participantRepository.save(participant);
+            ensureAccessGrant(eventId, email, linkedUser);
             created++;
             outcomes.add(new ParticipantIngestResult.RegistrationOutcome(
                     ParticipantIngestResult.RegistrationStatus.CREATED,
@@ -122,6 +134,40 @@ public class ParticipantAdminService {
 
         log.info("Participant ingest for event {}: created {} unchanged {}", eventId, created, unchanged);
         return ParticipantIngestResult.of(created, unchanged, outcomes);
+    }
+
+    private void ensureAccessGrant(UUID eventId, String email) {
+        ensureAccessGrant(eventId, email, null);
+    }
+
+    private void ensureAccessGrant(UUID eventId, String email, User linkedUser) {
+        if (email == null) {
+            return;
+        }
+        EventAccessGrant grant = accessGrantRepository.findByEmailIgnoreCaseAndEventId(email, eventId)
+                .orElseGet(() -> {
+                    EventAccessGrant created = new EventAccessGrant();
+                    created.setEmail(email);
+                    created.setEventId(eventId);
+                    created.setStatus(AccessGrantStatus.ACTIVE);
+                    return created;
+                });
+
+        boolean changed = false;
+        if (grant.getStatus() == AccessGrantStatus.REVOKED) {
+            grant.setStatus(AccessGrantStatus.ACTIVE);
+            changed = true;
+        }
+        if (linkedUser == null) {
+            linkedUser = userRepository.findByEmailIgnoreCase(email).orElse(null);
+        }
+        if (linkedUser != null && grant.getUser() == null) {
+            grant.setUser(linkedUser);
+            changed = true;
+        }
+        if (grant.getId() == null || changed) {
+            accessGrantRepository.save(grant);
+        }
     }
 
     private String normalize(String value) {

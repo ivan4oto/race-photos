@@ -11,6 +11,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ElementCollection;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
@@ -19,6 +20,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "users")
@@ -51,6 +53,9 @@ public class User {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
+
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private Set<EventAccessGrant> eventAccessGrants = new HashSet<>();
 
     @PrePersist
     public void prePersist() {
@@ -123,6 +128,24 @@ public class User {
 
     public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Set<EventAccessGrant> getEventAccessGrants() {
+        return eventAccessGrants;
+    }
+
+    public void setEventAccessGrants(Set<EventAccessGrant> eventAccessGrants) {
+        this.eventAccessGrants = eventAccessGrants == null ? new HashSet<>() : eventAccessGrants;
+    }
+
+    public Set<UUID> getActiveEventAccessIds() {
+        if (eventAccessGrants == null) {
+            return Set.of();
+        }
+        return eventAccessGrants.stream()
+                .filter(grant -> grant.getStatus() == AccessGrantStatus.ACTIVE)
+                .map(EventAccessGrant::getEventId)
+                .collect(Collectors.toUnmodifiableSet());
     }
 
     @Override

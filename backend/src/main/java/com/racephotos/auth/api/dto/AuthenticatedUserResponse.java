@@ -13,7 +13,8 @@ public record AuthenticatedUserResponse(
     String givenName,
     String familyName,
     String profilePictureUrl,
-    Set<String> roles
+    Set<String> roles,
+    Set<UUID> accessibleEventIds
 ) {
     public static AuthenticatedUserResponse from(SessionUser user) {
         return new AuthenticatedUserResponse(
@@ -23,7 +24,8 @@ public record AuthenticatedUserResponse(
             user.givenName(),
             user.familyName(),
             user.profilePictureUrl(),
-            user.roles().stream().map(Enum::name).collect(Collectors.toUnmodifiableSet())
+            user.roles().stream().map(Enum::name).collect(Collectors.toUnmodifiableSet()),
+            user.accessibleEventIds()
         );
     }
 }
