@@ -12,3 +12,10 @@ Content-Type: application/json
   "eventId": "3",
   "photoKey": "fresha2.png"
 }
+
+
+###
+
+
+POST http://localhost:8080/api/admin/events/7d7e541c-b071-4dc2-aa7e-2b342fea6d88/index-faces
+Cookie: rp_session=949148A1FEE41B8E1A27B96876C2F1DD

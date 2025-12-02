@@ -14,9 +14,11 @@ import java.util.function.Supplier;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final EventAccessGrantRepository accessGrantRepository;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, EventAccessGrantRepository accessGrantRepository) {
         this.userRepository = Objects.requireNonNull(userRepository, "userRepository");
+        this.accessGrantRepository = Objects.requireNonNull(accessGrantRepository, "accessGrantRepository");
     }
 
     @Transactional
@@ -47,6 +49,15 @@ public class UserService {
         dirty |= setIfChanged(user::getFirstName, user::setFirstName, normalize(cognitoUser.givenName()));
         dirty |= setIfChanged(user::getFamilyName, user::setFamilyName, normalize(cognitoUser.familyName()));
         dirty |= setIfChanged(user::getProfilePictureUrl, user::setProfilePictureUrl, normalize(cognitoUser.pictureUrl()));
+
+        // Attach any pending access grants by email.
+        var pendingGrants = accessGrantRepository.findByEmailIgnoreCaseAndStatus(email, AccessGrantStatus.ACTIVE);
+        for (EventAccessGrant grant : pendingGrants) {
+            if (grant.getUser() == null || !grant.getUser().equals(user)) {
+                grant.setUser(user);
+                accessGrantRepository.save(grant);
+            }
+        }
 
         return dirty ? userRepository.save(user) : user;
     }

@@ -11,6 +11,7 @@ export interface AuthenticatedUser {
   givenName?: string;
   familyName?: string;
   roles?: string[];
+  accessibleEventIds?: string[];
 }
 
 type SessionStatus = 'idle' | 'linking' | 'error';
