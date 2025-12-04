@@ -54,5 +54,17 @@ export class AdminHomeComponent {
       href: '/admin/providers/new',
       cta: 'Create provider',
     },
+    {
+      title: 'Event organizers',
+      description: 'Manage organizer contacts and status for events.',
+      href: '/admin/organizers',
+      cta: 'Go to organizers',
+    },
+    {
+      title: 'Create organizer',
+      description: 'Add a new event organizer with contact info.',
+      href: '/admin/organizers/new',
+      cta: 'Create organizer',
+    },
   ];
 }

@@ -1,0 +1,67 @@
+<section class="page">
+  <div class="hero">
+    <div class="hero-body">
+      <p class="eyebrow">Admin • Event organizers</p>
+      <h1>Edit organizer</h1>
+      <p class="lead">
+        Update contact details or disable an organizer when needed.
+      </p>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="alert error" *ngIf="submissionError()">{{ submissionError() }}</div>
+    <div class="alert success" *ngIf="submissionSuccess()">{{ submissionSuccess() }}</div>
+    <div class="alert error" *ngIf="disableError()">{{ disableError() }}</div>
+
+    <section class="card" *ngIf="!loading(); else loadingState">
+      <header>
+        <h2>Organizer details</h2>
+        <p>Slug plus key contact information.</p>
+      </header>
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div class="grid">
+          <label>
+            <span>Slug *</span>
+            <input type="text" formControlName="slug" placeholder="e.g. race-co-berlin" autocomplete="off">
+            <small *ngIf="controlInvalid('slug')">Lowercase, dashes only; required.</small>
+          </label>
+          <label>
+            <span>Name *</span>
+            <input type="text" formControlName="name" placeholder="Race Co Berlin GmbH">
+            <small *ngIf="controlInvalid('name')">Name is required.</small>
+          </label>
+          <label class="half">
+            <span>Email *</span>
+            <input type="email" formControlName="email" placeholder="team@raceco.example">
+            <small *ngIf="controlInvalid('email')">Valid email required.</small>
+          </label>
+          <label class="half">
+            <span>Phone</span>
+            <input type="tel" formControlName="phoneNumber" placeholder="+49 30 1234567">
+          </label>
+          <label class="half">
+            <span>Status *</span>
+            <select formControlName="status">
+              <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
+            </select>
+          </label>
+        </div>
+
+        <footer class="actions">
+          <button type="submit" [disabled]="form.invalid || submitting()">Save changes</button>
+          <p class="helper">PATCH to <code>/admin/organizers/{{ organizerId }}</code>.</p>
+          <button type="button" (click)="disable()" [disabled]="submitting()" style="background:#f87171; box-shadow:none;">
+            Disable organizer
+          </button>
+        </footer>
+      </form>
+    </section>
+
+    <ng-template #loadingState>
+      <section class="card">
+        <p>Loading organizer…</p>
+      </section>
+    </ng-template>
+  </div>
+</section>
