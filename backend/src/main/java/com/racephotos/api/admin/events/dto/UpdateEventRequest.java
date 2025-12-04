@@ -27,6 +27,7 @@ public record UpdateEventRequest(
         String description,
         @NotNull
         EventStatus status,
+        UUID organizerId,
         @Size(max = 160)
         String organizerName,
         @Size(max = 160)
@@ -75,6 +76,7 @@ public record UpdateEventRequest(
                 name,
                 description,
                 status,
+                organizerId,
                 organizerName,
                 registrationProvider,
                 vectorCollectionId,

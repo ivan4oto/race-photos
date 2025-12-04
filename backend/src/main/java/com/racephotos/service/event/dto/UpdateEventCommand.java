@@ -13,6 +13,7 @@ public record UpdateEventCommand(
         String name,
         String description,
         EventStatus status,
+        UUID organizerId,
         String organizerName,
         String registrationProvider,
         String vectorCollectionId,

@@ -4,6 +4,9 @@ import com.racephotos.domain.common.PricingProfile;
 import com.racephotos.domain.event.EligibilityMode;
 import com.racephotos.domain.event.Event;
 import com.racephotos.domain.event.EventAccessPolicy;
+import com.racephotos.domain.event.EventOrganizer;
+import com.racephotos.domain.event.EventOrganizerRepository;
+import com.racephotos.domain.event.EventOrganizerStatus;
 import com.racephotos.domain.event.EventRepository;
 import com.racephotos.domain.event.EventStatus;
 import com.racephotos.domain.photographer.Photographer;
@@ -34,15 +37,18 @@ public class EventAdminService {
     private static final Logger log = LogManager.getLogger(EventAdminService.class);
 
     private final EventRepository eventRepository;
+    private final EventOrganizerRepository eventOrganizerRepository;
     private final PhotographerRepository photographerRepository;
     private final PhotoAssetRepository photoAssetRepository;
 
     public EventAdminService(
             EventRepository eventRepository,
+            EventOrganizerRepository eventOrganizerRepository,
             PhotographerRepository photographerRepository,
             PhotoAssetRepository photoAssetRepository
     ) {
         this.eventRepository = Objects.requireNonNull(eventRepository, "eventRepository");
+        this.eventOrganizerRepository = Objects.requireNonNull(eventOrganizerRepository, "eventOrganizerRepository");
         this.photographerRepository = Objects.requireNonNull(photographerRepository, "photographerRepository");
         this.photoAssetRepository = Objects.requireNonNull(photoAssetRepository, "photoAssetRepository");
     }
@@ -63,12 +69,15 @@ public class EventAdminService {
 
         validateEventTimes(command.startTime(), command.endTime());
 
+        EventOrganizer organizer = resolveOrganizer(command.organizerId());
+
         Event event = new Event();
         event.setSlug(slug);
         event.setName(normalize(command.name()));
         event.setDescription(normalize(command.description()));
         event.setStatus(command.status() == null ? EventStatus.DRAFT : command.status());
-        event.setOrganizerName(normalize(command.organizerName()));
+        event.setOrganizerName(organizer != null ? organizer.getName() : normalize(command.organizerName()));
+        event.setEventOrganizer(organizer);
         event.setRegistrationProvider(normalize(command.registrationProvider()));
         event.setVectorCollectionId(normalize(command.vectorCollectionId()));
         event.setUploadPrefix(normalize(command.uploadPrefix()));
@@ -133,11 +142,14 @@ public class EventAdminService {
 
         validateEventTimes(command.startTime(), command.endTime());
 
+        EventOrganizer organizer = resolveOrganizer(command.organizerId());
+
         event.setSlug(slug);
         event.setName(normalize(command.name()));
         event.setDescription(normalize(command.description()));
         event.setStatus(command.status() == null ? EventStatus.DRAFT : command.status());
-        event.setOrganizerName(normalize(command.organizerName()));
+        event.setOrganizerName(organizer != null ? organizer.getName() : normalize(command.organizerName()));
+        event.setEventOrganizer(organizer);
         event.setRegistrationProvider(normalize(command.registrationProvider()));
         event.setVectorCollectionId(normalize(command.vectorCollectionId()));
         event.setUploadPrefix(normalize(command.uploadPrefix()));
@@ -271,6 +283,18 @@ public class EventAdminService {
             return matches.get(0);
         }
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No photographer identifier provided");
+    }
+
+    private EventOrganizer resolveOrganizer(UUID organizerId) {
+        if (organizerId == null) {
+            return null;
+        }
+        EventOrganizer organizer = eventOrganizerRepository.findById(organizerId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Organizer not found"));
+        if (organizer.getStatus() == EventOrganizerStatus.DISABLED) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Organizer is disabled");
+        }
+        return organizer;
     }
 
     private String normalize(String value) {
