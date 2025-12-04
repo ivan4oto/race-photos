@@ -11,6 +11,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -45,6 +47,23 @@ public class EventOrganizerAdminController {
                                 .buildAndExpand(created.getId())
                                 .toUri())
                 .body(EventOrganizerResponse.from(created));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<EventOrganizerResponse>> listOrganizers() {
+        List<EventOrganizerResponse> organizers = eventOrganizerAdminService.listOrganizers()
+                .stream()
+                .map(EventOrganizerResponse::from)
+                .toList();
+        return ResponseEntity.ok(organizers);
+    }
+
+    @GetMapping("/{organizerId}")
+    public ResponseEntity<EventOrganizerResponse> getOrganizer(
+            @PathVariable UUID organizerId
+    ) {
+        EventOrganizer organizer = eventOrganizerAdminService.getOrganizer(organizerId);
+        return ResponseEntity.ok(EventOrganizerResponse.from(organizer));
     }
 
     @PatchMapping(path = "/{organizerId}", consumes = MediaType.APPLICATION_JSON_VALUE)

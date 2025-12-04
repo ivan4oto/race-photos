@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -111,6 +112,20 @@ public class EventOrganizerAdminService {
             log.warn("Failed to update organizer with slug '{}' due to constraint violation", slug);
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Organizer could not be updated", e);
         }
+    }
+
+    @Transactional(readOnly = true)
+    public List<EventOrganizer> listOrganizers() {
+        return eventOrganizerRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public EventOrganizer getOrganizer(UUID organizerId) {
+        if (organizerId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Organizer id is required");
+        }
+        return eventOrganizerRepository.findById(organizerId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Organizer not found"));
     }
 
     @Transactional
