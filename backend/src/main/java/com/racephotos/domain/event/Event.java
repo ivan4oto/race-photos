@@ -17,6 +17,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -52,6 +53,10 @@ public class Event {
 
     @Column(name = "organizer_name", length = 160)
     private String organizerName;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "event_organizer_id")
+    private EventOrganizer eventOrganizer;
 
     @Column(name = "registration_provider", length = 160)
     private String registrationProvider;
@@ -201,6 +206,14 @@ public class Event {
 
     public void setOrganizerName(String organizerName) {
         this.organizerName = organizerName;
+    }
+
+    public EventOrganizer getEventOrganizer() {
+        return eventOrganizer;
+    }
+
+    public void setEventOrganizer(EventOrganizer eventOrganizer) {
+        this.eventOrganizer = eventOrganizer;
     }
 
     public String getRegistrationProvider() {
