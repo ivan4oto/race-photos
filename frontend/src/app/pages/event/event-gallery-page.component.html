@@ -1,0 +1,49 @@
+<section class="page">
+  <div class="container">
+    <header class="head">
+      <a routerLink="/" class="back">&larr; Back</a>
+      <h1>Your photos</h1>
+      <p class="lead">We search this event using your selfie and show your matches.</p>
+    </header>
+
+    <div class="actions">
+      <button class="btn" (click)="fetchMatches()" [disabled]="loading()">Refresh</button>
+      <button class="btn primary" (click)="downloadAll()" [disabled]="!hasMatches() || downloading()">
+        {{ downloading() ? 'Preparing zip...' : 'Download all' }}
+      </button>
+    </div>
+
+    <div class="status" *ngIf="loading()">Searching for your photos...</div>
+    <div class="status error" *ngIf="!loading() && error()">{{ error() }}</div>
+
+    <div *ngIf="missingSelfie()" class="upload-card">
+      <p class="upload-lead">Upload a selfie to find your photos</p>
+      <input type="file" accept="image/*" (change)="onFileChange($event)">
+      <div class="upload-actions">
+        <button class="btn primary" (click)="submitSelfie()" [disabled]="!canSubmitSelfie()">Submit</button>
+        <span class="hint">Max 4MB. Only images.</span>
+      </div>
+      <div class="status error" *ngIf="uploadError()">{{ uploadError() }}</div>
+    </div>
+
+    <div class="gallery" *ngIf="hasMatches()">
+      <div class="card" *ngFor="let match of matches()">
+        <div class="thumb" (click)="openImage(match.photoKey)">
+          <img [src]="buildImageUrl(match.photoKey)" [alt]="match.photoKey">
+        </div>
+        <div class="meta">
+          <div class="key" [title]="match.photoKey">{{ match.photoKey }}</div>
+          <div class="sim">{{ match.similarity | number:'1.0-0' }}% match</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal" *ngIf="selectedImage()">
+      <div class="modal-backdrop" (click)="closeModal()"></div>
+      <div class="modal-content">
+        <button class="close" (click)="closeModal()">&times;</button>
+        <img [src]="selectedImage()!" alt="Full size">
+      </div>
+    </div>
+  </div>
+</section>

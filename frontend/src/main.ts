@@ -33,6 +33,11 @@ const routes: Routes = [
     title: 'Race Photos — Find and sell event photos'
   },
   {
+    path: 'event/:eventId',
+    loadComponent: () => import('./app/pages/event/event-gallery-page.component').then(m => m.EventGalleryPageComponent),
+    title: 'My Event Photos — Race Photos'
+  },
+  {
     path: 'photographer',
     loadComponent: () => import('./app/pages/photographer/photographer-page.component').then(m => m.PhotographerPageComponent),
     title: 'For Photographers — Race Photos'
