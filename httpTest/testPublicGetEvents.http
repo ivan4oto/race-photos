@@ -1,0 +1,3 @@
+GET http://localhost:8080/api/events
+Accept: application/json
+Cookie: rp_session=E828350F991F53A19E2FF2A953FA5D06
