@@ -48,7 +48,13 @@
           </label>
           <label>
             <span>Organizer</span>
-            <input type="text" formControlName="organizerName" placeholder="SCC EVENTS">
+            <select formControlName="organizerId">
+              <option value="">No organizer</option>
+              <option *ngFor="let organizer of organizers()" [value]="organizer.id">
+                {{ organizer.slug }}
+              </option>
+            </select>
+            <small *ngIf="organizerError()">{{ organizerError() }}</small>
           </label>
           <label>
             <span>Registration provider</span>

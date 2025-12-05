@@ -35,6 +35,7 @@ export interface CreateEventRequest {
   name: string;
   description: string | null;
   status: EventStatus;
+  organizerId?: string | null;
   organizerName: string | null;
   registrationProvider: string | null;
   vectorCollectionId: string | null;
@@ -60,6 +61,7 @@ export interface EventSummary {
   slug: string;
   name: string;
   status: EventStatus;
+  organizer?: EventOrganizerRef;
   startTime: string | null;
   endTime: string | null;
   locationCity: string | null;
@@ -68,8 +70,14 @@ export interface EventSummary {
   photographerCount: number;
 }
 
+export interface EventOrganizerRef {
+  id: string;
+  slug: string;
+}
+
 export interface EventDetail extends CreateEventRequest {
   id: string;
+  organizer?: EventOrganizerRef | null;
   createdAt: string;
   updatedAt: string;
   indexedPhotoCount: number;

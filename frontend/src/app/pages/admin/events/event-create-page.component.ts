@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, signal } from '@angular/core';
+import {Component, OnInit, signal} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
   CreateEventRequest,
@@ -7,6 +7,7 @@ import {
   EventAdminService,
   EventStatus,
 } from '../../../shared/event-admin.service';
+import { EventOrganizerAdminService, EventOrganizerResponse } from '../../../shared/event-organizer-admin.service';
 
 interface EventFormValue extends CreateEventRequest {}
 
@@ -17,7 +18,7 @@ interface EventFormValue extends CreateEventRequest {}
   styleUrls: ['./event-create-page.component.css'],
   templateUrl: './event-create-page.component.html',
 })
-export class EventCreatePageComponent {
+export class EventCreatePageComponent implements OnInit{
   readonly statuses: EventStatus[] = [
     'DRAFT',
     'UPCOMING',
@@ -33,6 +34,9 @@ export class EventCreatePageComponent {
     'MANUAL_APPROVAL',
   ];
 
+  organizers = signal<EventOrganizerResponse[]>([]);
+  organizerError = signal<string | null>(null);
+  loadingOrganizers = signal(true);
   submitting = signal(false);
   submissionError = signal<string | null>(null);
   submissionSuccess = signal<string | null>(null);
@@ -50,6 +54,7 @@ export class EventCreatePageComponent {
     }),
     description: this.fb.control('', { validators: [Validators.maxLength(4000)] }),
     status: this.fb.control<EventStatus>('DRAFT', { validators: [Validators.required] }),
+    organizerId: this.fb.control<string | null>(''),
     organizerName: this.fb.control('', { validators: [Validators.maxLength(160)] }),
     registrationProvider: this.fb.control('', { validators: [Validators.maxLength(160)] }),
     vectorCollectionId: this.fb.control('', { validators: [Validators.maxLength(160)] }),
@@ -84,7 +89,12 @@ export class EventCreatePageComponent {
   constructor(
     private readonly fb: FormBuilder,
     private readonly eventAdminService: EventAdminService,
+    private readonly organizerAdminService: EventOrganizerAdminService,
   ) {}
+
+  ngOnInit(): void {
+    this.loadOrganizers();
+  }
 
   controlInvalid(path: string): boolean {
     const control = this.form.get(path);
@@ -120,14 +130,30 @@ export class EventCreatePageComponent {
     }
   }
 
+  private async loadOrganizers(): Promise<void> {
+    this.loadingOrganizers.set(true);
+    this.organizerError.set(null);
+    try {
+      const options = await this.organizerAdminService.listOrganizers();
+      this.organizers.set(options);
+    } catch (err) {
+      console.error(err);
+      this.organizerError.set('Unable to load organizers.');
+    } finally {
+      this.loadingOrganizers.set(false);
+    }
+  }
+
   private buildPayload(): EventFormValue {
     const raw = this.form.getRawValue();
+    const organizerId = this.cleanString(raw.organizerId);
     return {
       slug: raw.slug!.trim(),
       name: raw.name!.trim(),
       description: this.cleanString(raw.description),
       status: raw.status!,
-      organizerName: this.cleanString(raw.organizerName),
+      organizerId: organizerId,
+      organizerName: organizerId ? this.lookupOrganizerSlug(organizerId) : this.cleanString(raw.organizerName),
       registrationProvider: this.cleanString(raw.registrationProvider),
       vectorCollectionId: this.cleanString(raw.vectorCollectionId),
       uploadPrefix: this.cleanString(raw.uploadPrefix),
@@ -163,6 +189,14 @@ export class EventCreatePageComponent {
     }
     const str = String(value).trim();
     return str.length ? str : null;
+  }
+
+  private lookupOrganizerSlug(id: string | null): string | null {
+    if (!id) {
+      return null;
+    }
+    const match = this.organizers().find(o => o.id === id);
+    return match ? match.slug : null;
   }
 
   private cleanNumber(value: unknown): number | null {
