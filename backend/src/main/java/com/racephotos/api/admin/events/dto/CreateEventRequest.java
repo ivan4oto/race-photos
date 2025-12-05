@@ -14,6 +14,7 @@ import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.UUID;
 
 public record CreateEventRequest(
         @NotBlank
@@ -27,6 +28,7 @@ public record CreateEventRequest(
         String description,
         @NotNull
         EventStatus status,
+        UUID organizerId,
         @Size(max = 160)
         String organizerName,
         @Size(max = 160)
@@ -74,6 +76,7 @@ public record CreateEventRequest(
                 name,
                 description,
                 status,
+                organizerId,
                 organizerName,
                 registrationProvider,
                 vectorCollectionId,

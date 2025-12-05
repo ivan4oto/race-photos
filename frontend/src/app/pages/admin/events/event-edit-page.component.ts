@@ -11,6 +11,7 @@ import {
   EventStatus,
 } from '../../../shared/event-admin.service';
 import { PhotographerSummary } from '../../../shared/photographer-admin.service';
+import { EventOrganizerAdminService, EventOrganizerResponse } from '../../../shared/event-organizer-admin.service';
 
 interface EventFormValue extends CreateEventRequest {}
 
@@ -39,6 +40,8 @@ export class EventEditPageComponent implements OnInit {
 
   loadingEvent = signal(true);
   loadError = signal<string | null>(null);
+  loadingOrganizers = signal(true);
+  organizerError = signal<string | null>(null);
   saving = signal(false);
   submissionError = signal<string | null>(null);
   submissionSuccess = signal<string | null>(null);
@@ -51,6 +54,7 @@ export class EventEditPageComponent implements OnInit {
 
   eventId: string | null = null;
   photographers = signal<PhotographerSummary[]>([]);
+  organizers = signal<EventOrganizerResponse[]>([]);
 
   readonly form = this.fb.group({
     slug: this.fb.control('', {
@@ -66,6 +70,7 @@ export class EventEditPageComponent implements OnInit {
     description: this.fb.control('', { validators: [Validators.maxLength(4000)] }),
     status: this.fb.control<EventStatus>('DRAFT', { validators: [Validators.required] }),
     organizerName: this.fb.control('', { validators: [Validators.maxLength(160)] }),
+    organizerId: this.fb.control<string | null>(''),
     registrationProvider: this.fb.control('', { validators: [Validators.maxLength(160)] }),
     vectorCollectionId: this.fb.control('', { validators: [Validators.maxLength(160)] }),
     uploadPrefix: this.fb.control('', { validators: [Validators.maxLength(255)] }),
@@ -107,10 +112,12 @@ export class EventEditPageComponent implements OnInit {
     private readonly fb: FormBuilder,
     private readonly route: ActivatedRoute,
     private readonly eventAdminService: EventAdminService,
+    private readonly organizerAdminService: EventOrganizerAdminService,
   ) {}
 
   ngOnInit(): void {
     this.eventId = this.route.snapshot.paramMap.get('eventId');
+    this.loadOrganizers();
     if (this.eventId) {
       this.fetchEvent(this.eventId);
     } else {
@@ -138,6 +145,20 @@ export class EventEditPageComponent implements OnInit {
     }
   }
 
+  private async loadOrganizers(): Promise<void> {
+    this.loadingOrganizers.set(true);
+    this.organizerError.set(null);
+    try {
+      const options = await this.organizerAdminService.listOrganizers();
+      this.organizers.set(options);
+    } catch (err) {
+      console.error(err);
+      this.organizerError.set('Unable to load organizers.');
+    } finally {
+      this.loadingOrganizers.set(false);
+    }
+  }
+
   private applyEvent(event: EventDetail): void {
     this.photographers.set(event.photographers ?? []);
     this.photoStats.set({
@@ -150,6 +171,7 @@ export class EventEditPageComponent implements OnInit {
       description: event.description,
       status: event.status,
       organizerName: event.organizerName,
+      organizerId: event.organizer?.id ?? '',
       registrationProvider: event.registrationProvider,
       vectorCollectionId: event.vectorCollectionId,
       uploadPrefix: event.uploadPrefix,
@@ -272,12 +294,14 @@ export class EventEditPageComponent implements OnInit {
 
   private buildPayload(): EventFormValue {
     const raw = this.form.getRawValue();
+    const organizerId = this.cleanString(raw.organizerId);
     return {
       slug: raw.slug!.trim(),
       name: raw.name!.trim(),
       description: this.cleanString(raw.description),
       status: raw.status!,
-      organizerName: this.cleanString(raw.organizerName),
+      organizerId: organizerId,
+      organizerName: organizerId ? this.lookupOrganizerSlug(organizerId) : this.cleanString(raw.organizerName),
       registrationProvider: this.cleanString(raw.registrationProvider),
       vectorCollectionId: this.cleanString(raw.vectorCollectionId),
       uploadPrefix: this.cleanString(raw.uploadPrefix),
@@ -313,6 +337,14 @@ export class EventEditPageComponent implements OnInit {
     }
     const str = String(value).trim();
     return str.length ? str : null;
+  }
+
+  private lookupOrganizerSlug(id: string | null): string | null {
+    if (!id) {
+      return null;
+    }
+    const match = this.organizers().find(o => o.id === id);
+    return match ? match.slug : null;
   }
 
   private cleanNumber(value: unknown): number | null {

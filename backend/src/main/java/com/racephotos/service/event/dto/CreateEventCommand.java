@@ -5,12 +5,14 @@ import com.racephotos.service.common.dto.PricingProfileData;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.UUID;
 
 public record CreateEventCommand(
         String slug,
         String name,
         String description,
         EventStatus status,
+        UUID organizerId,
         String organizerName,
         String registrationProvider,
         String vectorCollectionId,

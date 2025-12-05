@@ -1,0 +1,57 @@
+<section class="page">
+  <div class="hero">
+    <div class="hero-body">
+      <p class="eyebrow">Admin • Event organizers</p>
+      <h1>Add a new organizer</h1>
+      <p class="lead">
+        Capture the core contact details and slug we use to link events to an organizer.
+      </p>
+    </div>
+  </div>
+
+  <div class="container">
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <div class="alert success" *ngIf="submissionSuccess()">{{ submissionSuccess() }}</div>
+      <div class="alert error" *ngIf="submissionError()">{{ submissionError() }}</div>
+
+      <section class="card">
+        <header>
+          <h2>Organizer details</h2>
+          <p>Slug plus key contact information.</p>
+        </header>
+        <div class="grid">
+          <label>
+            <span>Slug *</span>
+            <input type="text" formControlName="slug" placeholder="e.g. race-co-berlin" autocomplete="off">
+            <small *ngIf="controlInvalid('slug')">Lowercase, dashes only; required.</small>
+          </label>
+          <label>
+            <span>Name *</span>
+            <input type="text" formControlName="name" placeholder="Race Co Berlin GmbH">
+            <small *ngIf="controlInvalid('name')">Name is required.</small>
+          </label>
+          <label class="half">
+            <span>Email *</span>
+            <input type="email" formControlName="email" placeholder="team@raceco.example">
+            <small *ngIf="controlInvalid('email')">Valid email required.</small>
+          </label>
+          <label class="half">
+            <span>Phone</span>
+            <input type="tel" formControlName="phoneNumber" placeholder="+49 30 1234567">
+          </label>
+          <label class="half">
+            <span>Status *</span>
+            <select formControlName="status">
+              <option *ngFor="let status of statuses" [value]="status">{{ status }}</option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <footer class="actions">
+        <button type="submit" [disabled]="form.invalid || submitting()">Create organizer</button>
+        <p class="helper">Posts to <code>/admin/organizers</code> and saves immediately.</p>
+      </footer>
+    </form>
+  </div>
+</section>

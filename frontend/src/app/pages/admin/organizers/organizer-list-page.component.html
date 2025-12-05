@@ -1,0 +1,63 @@
+<section class="page">
+  <div class="hero">
+    <div class="hero-body">
+      <p class="eyebrow">Admin • Event organizers</p>
+      <h1>Organizer directory</h1>
+      <p class="lead">
+        Keep organizer contacts tidy and jump into edits in a click.
+      </p>
+      <div class="actions">
+        <a routerLink="/admin/organizers/new" class="btn primary">Create organizer</a>
+        <button type="button" class="btn ghost" (click)="load()" [disabled]="loading()">Refresh</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="alert error" *ngIf="error()">{{ error() }}</div>
+    <div class="card">
+      <header>
+        <div>
+          <h2>Organizers</h2>
+          <p>Click a row to edit details.</p>
+        </div>
+        <div class="badge" *ngIf="!loading()">{{ organizers().length }} total</div>
+      </header>
+
+      <div class="empty" *ngIf="!loading() && organizers().length === 0 && !error()">
+        <p>No organizers yet.</p>
+        <a routerLink="/admin/organizers/new" class="btn primary">Create organizer</a>
+      </div>
+
+      <div class="table" *ngIf="!loading() && organizers().length > 0">
+        <div class="table-head">
+          <span>Name</span>
+          <span>Email</span>
+          <span>Phone</span>
+          <span>Status</span>
+          <span>Updated</span>
+        </div>
+        <button
+          type="button"
+          class="table-row"
+          *ngFor="let organizer of organizers()"
+          (click)="goToOrganizer(organizer.id)"
+        >
+          <div class="stack">
+            <strong>{{ organizer.name }}</strong>
+            <small>{{ organizer.slug }}</small>
+          </div>
+          <span>{{ organizer.email }}</span>
+          <span>{{ organizer.phoneNumber || '—' }}</span>
+          <span class="pill" [class.disabled]="organizer.status === 'DISABLED'">{{ organizer.status }}</span>
+          <span>{{ formatDate(organizer.updatedAt) }}</span>
+        </button>
+      </div>
+
+      <div class="loading" *ngIf="loading()">
+        <div class="spinner"></div>
+        <p>Loading organizers…</p>
+      </div>
+    </div>
+  </div>
+</section>

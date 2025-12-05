@@ -76,6 +76,24 @@ const routes: Routes = [
     canMatch: [adminGuard]
   },
   {
+    path: 'admin/organizers/new',
+    loadComponent: () => import('./app/pages/admin/organizers/organizer-create-page.component').then(m => m.OrganizerCreatePageComponent),
+    title: 'Create Event Organizer — Race Photos',
+    canMatch: [adminGuard]
+  },
+  {
+    path: 'admin/organizers',
+    loadComponent: () => import('./app/pages/admin/organizers/organizer-list-page.component').then(m => m.OrganizerListPageComponent),
+    title: 'Event Organizers — Race Photos',
+    canMatch: [adminGuard]
+  },
+  {
+    path: 'admin/organizers/:organizerId',
+    loadComponent: () => import('./app/pages/admin/organizers/organizer-edit-page.component').then(m => m.OrganizerEditPageComponent),
+    title: 'Edit Event Organizer — Race Photos',
+    canMatch: [adminGuard]
+  },
+  {
     path: 'admin',
     loadComponent: () => import('./app/pages/admin/admin-home.component').then(m => m.AdminHomeComponent),
     title: 'Admin — Race Photos',
