@@ -17,8 +17,12 @@ import software.amazon.awssdk.services.rekognition.model.Image;
 import software.amazon.awssdk.services.rekognition.model.SearchFacesByImageRequest;
 import software.amazon.awssdk.services.rekognition.model.SearchFacesByImageResponse;
 import software.amazon.awssdk.services.rekognition.model.S3Object;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 
 import java.util.*;
+import java.time.Duration;
 
 import com.racephotos.service.ingestion.FaceMetadataRepository;
 
@@ -30,23 +34,32 @@ public class FaceSearchService {
     private final RekognitionClient rekognitionClient;
     private final FaceMetadataRepository metadataRepository;
     private final EventRepository eventRepository;
+    private final S3Presigner s3Presigner;
     private final String bucket;
     private final Integer maxFaces;
     private final Float similarityThreshold;
+    private final Duration presignExpiration;
 
     public FaceSearchService(
             RekognitionClient rekognitionClient,
-            FaceMetadataRepository metadataRepository, EventRepository eventRepository,
+            FaceMetadataRepository metadataRepository,
+            EventRepository eventRepository,
+            S3Presigner s3Presigner,
             @Value("${aws.s3.bucket:}") String bucket,
             @Value("${aws.rekognition.search.max-faces}") Integer maxFaces,
-            @Value("${aws.rekognition.search.threshold}") Float similarityThreshold
+            @Value("${aws.rekognition.search.threshold}") Float similarityThreshold,
+            @Value("${aws.s3.presign.expiration-seconds:3600}") Long presignExpirationSeconds
     ) {
         this.rekognitionClient = Objects.requireNonNull(rekognitionClient, "rekognitionClient");
         this.metadataRepository = Objects.requireNonNull(metadataRepository, "metadataRepository");
         this.eventRepository = Objects.requireNonNull(eventRepository, "eventRepository");
+        this.s3Presigner = Objects.requireNonNull(s3Presigner, "s3Presigner");
         this.bucket = bucket;
         this.maxFaces = maxFaces;
         this.similarityThreshold = similarityThreshold;
+        this.presignExpiration = Duration.ofSeconds(
+                Optional.ofNullable(presignExpirationSeconds).filter(v -> v > 0).orElse(3600L)
+        );
     }
 
     public FaceSearchResult searchFaces(String eventId, String photoKey) {
@@ -57,7 +70,7 @@ public class FaceSearchService {
         String collectionId = event.getVectorCollectionId();
         SearchFacesByImageResponse response = runSearch(normalizedKey, collectionId);
 
-        Map<String, Match> matchesByPhoto = new LinkedHashMap<>();
+        Map<String, AggregatedMatch> matchesByPhoto = new LinkedHashMap<>();
         List<FaceMatch> faceMatches = response.faceMatches();
         if (faceMatches != null) {
             for (FaceMatch faceMatch : faceMatches) {
@@ -65,20 +78,25 @@ public class FaceSearchService {
             }
         }
 
-        FaceSearchResult result = new FaceSearchResult(eventId, normalizedKey, List.copyOf(matchesByPhoto.values()));
+        List<AggregatedMatch> aggregatedMatches = List.copyOf(matchesByPhoto.values());
+        List<Match> matchesWithUrls = aggregatedMatches.stream()
+                .map(this::toPresignedMatch)
+                .toList();
+
+        FaceSearchResult result = new FaceSearchResult(eventId, normalizedKey, matchesWithUrls);
         long elapsedMillis = (System.nanoTime() - startNanos) / 1_000_000;
         log.debug(
                 "Finished face search for event {} key {} -> {} aggregated matches ({} raw Rekognition matches) in {} ms",
                 eventId,
                 normalizedKey,
-                result.matches().size(),
+                aggregatedMatches.size(),
                 faceMatches == null ? 0 : faceMatches.size(),
                 elapsedMillis
         );
         return result;
     }
 
-    private void processMatch(String eventId, String probeKey, FaceMatch faceMatch, Map<String, Match> matchesByPhoto) {
+    private void processMatch(String eventId, String probeKey, FaceMatch faceMatch, Map<String, AggregatedMatch> matchesByPhoto) {
         if (faceMatch == null || faceMatch.face() == null) {
             return;
         }
@@ -95,7 +113,7 @@ public class FaceSearchService {
 
             matchesByPhoto.compute(metadata.photoKey(), (key, existing) -> {
                 float similarity = faceMatch.similarity() == null ? 0F : faceMatch.similarity();
-                Match candidate = new Match(
+                AggregatedMatch candidate = new AggregatedMatch(
                         metadata.photoKey(),
                         face.faceId(),
                         similarity,
@@ -163,7 +181,27 @@ public class FaceSearchService {
         return photoKey.trim();
     }
 
+    private Match toPresignedMatch(AggregatedMatch match) {
+        GetObjectRequest getRequest = GetObjectRequest.builder()
+                .bucket(bucket)
+                .key(match.photoKey())
+                .build();
+
+        GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+                .signatureDuration(presignExpiration)
+                .getObjectRequest(getRequest)
+                .build();
+
+        String presignedUrl = s3Presigner.presignGetObject(presignRequest)
+                .url()
+                .toExternalForm();
+
+        return new Match(presignedUrl, match.faceId(), match.similarity(), match.confidence(), match.boundingBox());
+    }
+
     public record FaceSearchResult(String eventId, String probePhotoKey, List<Match> matches) {}
 
-    public record Match(String photoKey, String faceId, float similarity, Float confidence, BoundingBox boundingBox) {}
+    private record AggregatedMatch(String photoKey, String faceId, float similarity, Float confidence, BoundingBox boundingBox) {}
+
+    public record Match(String photoUrl, String faceId, float similarity, Float confidence, BoundingBox boundingBox) {}
 }

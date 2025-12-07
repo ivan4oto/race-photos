@@ -44,7 +44,7 @@ aws:
     endpoint: ${AWS_S3_ENDPOINT:}
     path-style-enabled: ${AWS_S3_PATH_STYLE:false}
     presign:
-      expiration-seconds: ${AWS_S3_PRESIGN_EXPIRATION_SECONDS:7200}
+      expiration-seconds: ${AWS_S3_PRESIGN_EXPIRATION_SECONDS:3600}
   rekognition:
     endpoint: ${AWS_REKOGNITION_ENDPOINT:}
     search:

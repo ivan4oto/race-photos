@@ -17,7 +17,7 @@ public record FaceSearchResponse(
                 result.matches()
                         .stream()
                         .map(match -> new Match(
-                                match.photoKey(),
+                                match.photoUrl(),
                                 match.faceId(),
                                 match.similarity(),
                                 match.confidence(),
@@ -28,7 +28,7 @@ public record FaceSearchResponse(
     }
 
     public record Match(
-            String photoKey,
+            String url,
             String faceId,
             float similarity,
             Float confidence,
