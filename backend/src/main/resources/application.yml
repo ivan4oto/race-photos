@@ -46,7 +46,6 @@ aws:
     presign:
       expiration-seconds: ${AWS_S3_PRESIGN_EXPIRATION_SECONDS:7200}
   rekognition:
-    collection-prefix: ${AWS_REKOGNITION_COLLECTION_PREFIX:race-photos-event}
     endpoint: ${AWS_REKOGNITION_ENDPOINT:}
     search:
       max-faces: ${AWS_REKOGNITION_SEARCH_MAX_FACES:50}
