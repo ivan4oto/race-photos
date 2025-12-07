@@ -31,7 +31,6 @@ public class FaceSearchService {
     private final FaceMetadataRepository metadataRepository;
     private final EventRepository eventRepository;
     private final String bucket;
-    private final String collectionPrefix;
     private final Integer maxFaces;
     private final Float similarityThreshold;
 
@@ -39,7 +38,6 @@ public class FaceSearchService {
             RekognitionClient rekognitionClient,
             FaceMetadataRepository metadataRepository, EventRepository eventRepository,
             @Value("${aws.s3.bucket:}") String bucket,
-            @Value("${aws.rekognition.collection-prefix}") String collectionPrefix,
             @Value("${aws.rekognition.search.max-faces}") Integer maxFaces,
             @Value("${aws.rekognition.search.threshold}") Float similarityThreshold
     ) {
@@ -47,7 +45,6 @@ public class FaceSearchService {
         this.metadataRepository = Objects.requireNonNull(metadataRepository, "metadataRepository");
         this.eventRepository = Objects.requireNonNull(eventRepository, "eventRepository");
         this.bucket = bucket;
-        this.collectionPrefix = collectionPrefix;
         this.maxFaces = maxFaces;
         this.similarityThreshold = similarityThreshold;
     }
@@ -156,9 +153,6 @@ public class FaceSearchService {
     private String validateInputs(String eventId, String photoKey) {
         if (bucket == null || bucket.isBlank()) {
             throw new IllegalStateException("S3 bucket name (aws.s3.bucket) is not configured");
-        }
-        if (collectionPrefix == null || collectionPrefix.isBlank()) {
-            throw new IllegalStateException("Rekognition collection prefix (aws.rekognition.prefix) is not configured");
         }
         if (eventId == null || eventId.isBlank()) {
             throw new IllegalArgumentException("eventId must not be blank");
