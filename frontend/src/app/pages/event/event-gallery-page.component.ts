@@ -6,7 +6,7 @@ import { API_BASE_URL } from '../../shared/api.config';
 import { finalize, Subscription } from 'rxjs';
 import { zipSync } from 'fflate';
 
-type SelfieSearchMatch = { photoKey: string; similarity: number };
+type SelfieSearchMatch = { url: string; similarity: number };
 type SelfieSearchResponse = { eventId: string; probePhotoKey: string; matches: SelfieSearchMatch[] };
 
 @Component({
@@ -17,8 +17,6 @@ type SelfieSearchResponse = { eventId: string; probePhotoKey: string; matches: S
   styleUrls: ['./event-gallery-page.component.css']
 })
 export class EventGalleryPageComponent implements OnInit, OnDestroy {
-  protected readonly bucketUrl = 'https://race-photos-dev.s3.eu-central-1.amazonaws.com';
-
   protected readonly eventId = signal<string | null>(null);
   protected readonly matches = signal<SelfieSearchMatch[]>([]);
   protected readonly loading = signal(false);
@@ -84,12 +82,8 @@ export class EventGalleryPageComponent implements OnInit, OnDestroy {
       });
   }
 
-  buildImageUrl(key: string): string {
-    return `${this.bucketUrl}/${encodeURI(key)}`;
-  }
-
-  openImage(key: string): void {
-    this.selectedImage.set(this.buildImageUrl(key));
+  openImage(url: string): void {
+    this.selectedImage.set(url);
   }
 
   closeModal(): void {
@@ -145,13 +139,12 @@ export class EventGalleryPageComponent implements OnInit, OnDestroy {
       try {
         const files: Record<string, Uint8Array> = {};
         for (const match of matches) {
-          const url = this.buildImageUrl(match.photoKey);
-          const resp = await fetch(url);
+          const resp = await fetch(match.url);
           if (!resp.ok) {
-            throw new Error(`Failed to fetch ${match.photoKey}`);
+            throw new Error(`Failed to fetch ${this.filenameFromUrl(match.url)}`);
           }
           const buffer = new Uint8Array(await resp.arrayBuffer());
-          const baseName = this.filenameFromKey(match.photoKey);
+          const baseName = this.filenameFromUrl(match.url);
           let name = baseName;
           let counter = 1;
           while (files[name]) {
@@ -179,10 +172,21 @@ export class EventGalleryPageComponent implements OnInit, OnDestroy {
     })();
   }
 
-  private filenameFromKey(key: string): string {
-    if (!key) return 'photo.jpg';
-    const parts = key.split('/');
-    const last = parts[parts.length - 1] || 'photo.jpg';
-    return last;
+  protected displayName(match: SelfieSearchMatch): string {
+    return this.filenameFromUrl(match.url);
+  }
+
+  private filenameFromUrl(url: string): string {
+    if (!url) return 'photo.jpg';
+    try {
+      const parsed = new URL(url);
+      const pathParts = parsed.pathname.split('/').filter(Boolean);
+      const last = pathParts[pathParts.length - 1];
+      return last ? decodeURIComponent(last) : 'photo.jpg';
+    } catch {
+      const parts = url.split('/').filter(Boolean);
+      const last = parts[parts.length - 1];
+      return last ? decodeURIComponent(last) : 'photo.jpg';
+    }
   }
 }

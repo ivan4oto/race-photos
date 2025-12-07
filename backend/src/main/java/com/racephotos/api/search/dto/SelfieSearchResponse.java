@@ -14,10 +14,10 @@ public record SelfieSearchResponse(
                 result.eventId(),
                 result.probePhotoKey(),
                 result.matches().stream()
-                        .map(m -> new Match(m.photoKey(), m.similarity()))
+                        .map(m -> new Match(m.photoUrl(), m.similarity()))
                         .toList()
         );
     }
 
-    public record Match(String photoKey, float similarity) { }
+    public record Match(String url, float similarity) { }
 }

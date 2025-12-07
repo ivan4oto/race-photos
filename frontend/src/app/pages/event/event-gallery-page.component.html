@@ -28,11 +28,11 @@
 
     <div class="gallery" *ngIf="hasMatches()">
       <div class="card" *ngFor="let match of matches()">
-        <div class="thumb" (click)="openImage(match.photoKey)">
-          <img [src]="buildImageUrl(match.photoKey)" [alt]="match.photoKey">
+        <div class="thumb" (click)="openImage(match.url)">
+          <img [src]="match.url" [alt]="displayName(match)">
         </div>
         <div class="meta">
-          <div class="key" [title]="match.photoKey">{{ match.photoKey }}</div>
+          <div class="key" [title]="displayName(match)">{{ displayName(match) }}</div>
           <div class="sim">{{ match.similarity | number:'1.0-0' }}% match</div>
         </div>
       </div>
