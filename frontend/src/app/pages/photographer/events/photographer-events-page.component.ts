@@ -3,10 +3,11 @@ import { Component, Inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { AgGridAngular } from 'ag-grid-angular';
-import {ColDef, Module, themeBalham} from 'ag-grid-community';
+import {ColDef, Module, themeQuartz} from 'ag-grid-community';
 import { finalize } from 'rxjs/operators';
 import { API_BASE_URL } from '../../../shared/api.config';
 import { AllCommunityModule } from 'ag-grid-community';
+import {CustomButtonComponent} from "./custom-button.component";
 
 interface PhotographerEvent {
   id: string;
@@ -26,7 +27,7 @@ export class PhotographerEventsPageComponent implements OnInit {
   public modules: Module[] = [
       AllCommunityModule
   ]
-  public theme = themeBalham;
+  public theme = themeQuartz;
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
   readonly events = signal<PhotographerEvent[]>([]);
@@ -50,13 +51,11 @@ export class PhotographerEventsPageComponent implements OnInit {
     {
       colId: 'actions',
       headerName: 'Upload',
-      width: 140,
-      minWidth: 120,
-      suppressMovable: true,
+      maxWidth: 180,
+      minWidth: 140,
       sortable: false,
       filter: false,
-      cellRenderer: () => `<button class="btn primary">Upload</button>`,
-      cellClass: 'action-cell'
+      cellRenderer: CustomButtonComponent,
     }
   ];
 
