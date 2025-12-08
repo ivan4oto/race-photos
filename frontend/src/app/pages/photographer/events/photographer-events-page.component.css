@@ -1,0 +1,137 @@
+.page {
+  min-height: 100vh;
+  padding: 32px clamp(16px, 4vw, 48px);
+  background: #f5f7fb;
+  color: #0f172a;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.eyebrow {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 12px;
+  color: #64748b;
+  margin: 0 0 4px;
+}
+
+h1 {
+  margin: 0 0 8px;
+  font-size: clamp(26px, 4vw, 34px);
+}
+
+.subhead {
+  margin: 0;
+  color: #475569;
+  max-width: 680px;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+/*.card {*/
+/*  background: #ffffff;*/
+/*  border: 1px solid #e2e8f0;*/
+/*  border-radius: 16px;*/
+/*  padding: clamp(16px, 2vw, 24px);*/
+/*  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);*/
+/*}*/
+
+.status {
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #0f172a;
+  margin-bottom: 12px;
+}
+
+.status.error {
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #b91c1c;
+  background: #fef2f2;
+}
+
+.status.muted {
+  color: #64748b;
+}
+
+
+.grid {
+  width: 100%;
+  min-height: 360px;
+}
+
+/*!*.ag-theme-quartz {*!*/
+/*!*  --ag-background-color: #ffffff;*!*/
+/*!*  --ag-header-background-color: #f8fafc;*!*/
+/*!*  --ag-odd-row-background-color: #f8fafc;*!*/
+/*!*  --ag-row-hover-color: #e2e8f0;*!*/
+/*!*  --ag-border-color: #e2e8f0;*!*/
+/*!*  --ag-header-foreground-color: #0f172a;*!*/
+/*!*  --ag-data-color: #0f172a;*!*/
+/*!*  --ag-font-size: 14px;*!*/
+/*!*  --ag-font-family: 'Inter', system-ui, -apple-system, sans-serif;*!*/
+/*!*  --ag-header-column-resize-handle-color: #cbd5e1;*!*/
+/*!*}*!*/
+
+/*.cell-strong {*/
+/*  font-weight: 600;*/
+/*}*/
+
+/*.action-cell {*/
+/*  display: flex;*/
+/*  align-items: center;*/
+/*  justify-content: center;*/
+/*}*/
+
+.btn {
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #0f172a;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-weight: 600;
+}
+
+.btn.ghost {
+  background: #f8fafc;
+}
+
+/*.btn.primary {*/
+/*  background: #0b64f3;*/
+/*  border-color: #0b64f3;*/
+/*  color: #ffffff;*/
+/*}*/
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 25px rgba(99, 102, 241, 0.2);
+}
+
+@media (max-width: 720px) {
+  .page {
+    padding: 20px;
+  }
+
+  .grid {
+    min-height: 320px;
+  }
+}

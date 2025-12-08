@@ -1,0 +1,35 @@
+<section class="page">
+  <div class="hero">
+    <div>
+      <p class="eyebrow">Photographer Workspace</p>
+      <h1>Your Events</h1>
+      <p class="subhead">Select an event to upload your photos. Need to refresh access? Use the refresh button below.</p>
+    </div>
+    <div class="actions">
+      <button class="btn ghost" (click)="load()" [disabled]="loading()">
+        {{ loading() ? 'Refreshing...' : 'Refresh' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="status" *ngIf="loading()">Loading your events...</div>
+    <div class="status error" *ngIf="!loading() && error()">{{ error() }}</div>
+    <div class="status muted" *ngIf="!loading() && !error() && events().length === 0">
+      No events assigned yet.
+    </div>
+
+    <div class="grid-wrapper" *ngIf="!loading() && !error() && events().length > 0">
+      <ag-grid-angular
+        class="ag-theme-quartz grid"
+        [theme]="theme"
+        [modules]="modules"
+        [rowData]="events()"
+        [columnDefs]="columnDefs"
+        [defaultColDef]="defaultColDef"
+        [domLayout]="'autoHeight'"
+        (cellClicked)="onCellClicked($event)">
+      </ag-grid-angular>
+    </div>
+  </div>
+</section>
