@@ -1,14 +1,15 @@
-import { Component, computed, signal } from '@angular/core';
+import {Component, computed, input, signal} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DEFAULT_UPLOAD_CONFIG } from '../../shared/upload.config';
 import { UploadItem } from '../../shared/upload.types';
 import { S3UploadService } from '../../shared/s3-upload.service';
 import { ActivatedRoute } from '@angular/router';
+import {FormsModule} from "@angular/forms";
 
 @Component({
   selector: 'app-upload-page',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   styleUrls: ['./upload-page.component.css'],
   templateUrl: './upload-page.component.html'
 })
@@ -16,6 +17,7 @@ export class UploadPageComponent {
   config = DEFAULT_UPLOAD_CONFIG;
 
   items = signal<UploadItem[]>([]);
+  folderName = signal('');
 
   // Derived counts
   successCount = computed(() => this.items().filter(i => i.status === 'success').length);
@@ -39,7 +41,7 @@ export class UploadPageComponent {
 
   isUploading = signal(false);
   pageError = signal<string | null>(null);
-  private readonly eventSlug: string | null;
+  readonly eventSlug: string | null;
 
   constructor(
     private s3: S3UploadService,
@@ -96,7 +98,8 @@ export class UploadPageComponent {
         this.emitItems();
         const names = batch.map(b => b.name);
         try {
-          const presignedDtos = await this.s3.presign(names, this.eventSlug);
+          const folder = this.folderName().trim() || undefined;
+          const presignedDtos = await this.s3.presign(names, this.eventSlug, folder);
           presignedDtos.forEach((dto) => urlMap.set(dto.name, dto.url));
         } catch (e: any) {
           batch.forEach(item => {

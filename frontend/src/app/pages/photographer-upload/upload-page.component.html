@@ -3,9 +3,15 @@
     <header class="head">
       <h1>Upload Event Photos</h1>
       <p class="lead">Select multiple images, then start upload. We’ll show progress and any failures.</p>
+      <p class="sub">Event: <strong>{{ eventSlug || 'unknown' }}</strong></p>
     </header>
 
     <div class="controls">
+      <div class="field">
+        <label for="folder" class="label">Folder name (optional)</label>
+        <input id="folder" type="text" class="text-input" [(ngModel)]="folderName" placeholder="e.g. finish-line/day-1">
+        <p class="hint">If provided, files will be uploaded under this folder prefix.</p>
+      </div>
       <label class="btn primary">
         <input type="file" multiple (change)="onPickFiles($event.target.files)" [attr.accept]="config.acceptedMimeTypes.join(',')" hidden>
         Select photos

@@ -10,6 +10,8 @@ public record S3SignedUrlRequest(
         @NotNull
         @NotEmpty
         @Size(max = 200)
-        List<@Size(max = 255) String> names
+        List<@Size(max = 255) String> names,
+        @Size(max = 255)
+        String folderName
 ) {
 }
