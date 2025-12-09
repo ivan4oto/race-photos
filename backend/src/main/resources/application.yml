@@ -70,3 +70,4 @@ app:
 logging:
   level:
     root: INFO
+    com.racephotos: DEBUG

@@ -120,19 +120,25 @@ const routes: Routes = [
   },
   {
     path: 'admin/events/new',
-    loadComponent: () => import('./app/pages/admin/events/event-create-page.component').then(m => m.EventCreatePageComponent),
+    loadComponent: () => import('./app/pages/admin/events/create/event-create-page.component').then(m => m.EventCreatePageComponent),
     title: 'Create Event — Race Photos',
     canMatch: [adminGuard]
   },
   {
     path: 'admin/events',
-    loadComponent: () => import('./app/pages/admin/events/event-list-page.component').then(m => m.EventListPageComponent),
+    loadComponent: () => import('./app/pages/admin/events/list/event-list-page.component').then(m => m.EventListPageComponent),
     title: 'Events — Race Photos',
     canMatch: [adminGuard]
   },
   {
+    path: 'admin/events/:eventId/photos',
+    loadComponent: () => import('./app/pages/admin/events/photos/event-photos-page.component').then(m => m.EventPhotosPageComponent),
+    title: 'Event Photos — Race Photos',
+    canMatch: [adminGuard]
+  },
+  {
     path: 'admin/events/:eventId',
-    loadComponent: () => import('./app/pages/admin/events/event-edit-page.component').then(m => m.EventEditPageComponent),
+    loadComponent: () => import('./app/pages/admin/events/edit/event-edit-page.component').then(m => m.EventEditPageComponent),
     title: 'Edit Event — Race Photos',
     canMatch: [adminGuard]
   },

@@ -9,9 +9,9 @@ import {
   EventAdminService,
   EventDetail,
   EventStatus,
-} from '../../../shared/event-admin.service';
-import { PhotographerSummary } from '../../../shared/photographer-admin.service';
-import { EventOrganizerAdminService, EventOrganizerResponse } from '../../../shared/event-organizer-admin.service';
+} from '../../../../shared/event-admin.service';
+import { PhotographerSummary } from '../../../../shared/photographer-admin.service';
+import { EventOrganizerAdminService, EventOrganizerResponse } from '../../../../shared/event-organizer-admin.service';
 
 interface EventFormValue extends CreateEventRequest {}
 
@@ -19,7 +19,7 @@ interface EventFormValue extends CreateEventRequest {}
   selector: 'app-event-edit-page',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
-  styleUrls: ['./event-create-page.component.css', './event-edit-page.component.css'],
+  styleUrls: ['../create/event-create-page.component.css', './event-edit-page.component.css'],
   templateUrl: './event-edit-page.component.html',
 })
 export class EventEditPageComponent implements OnInit {

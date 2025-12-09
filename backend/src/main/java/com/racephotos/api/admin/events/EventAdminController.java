@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -72,6 +73,17 @@ public class EventAdminController {
     ) {
         Event event = eventAdminService.getEvent(eventId);
         return ResponseEntity.ok(toDetailResponse(event));
+    }
+
+    // Returns a count for how many files are there for each 'folder' in S3
+    // Uses delimiter to figure out directories and counts keys for each
+    // Used for admin audit and photos clean up in case of issues.
+    @GetMapping("/{eventId}/photo-prefix-counts")
+    public ResponseEntity<Map<String, Long>> getPhotoPrefixCounts(
+            @PathVariable UUID eventId
+    ) {
+        Map<String, Long> counts = eventAdminService.getPhotoPrefixCounts(eventId);
+        return ResponseEntity.ok(counts);
     }
 
     @PutMapping(path = "/{eventId}", consumes = MediaType.APPLICATION_JSON_VALUE)

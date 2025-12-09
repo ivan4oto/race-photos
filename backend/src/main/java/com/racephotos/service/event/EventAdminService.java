@@ -25,11 +25,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.OffsetDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.LongAdder;
+import java.util.stream.Collectors;
 
 @Service
 public class EventAdminService {
@@ -195,6 +197,54 @@ public class EventAdminService {
         Event saved = eventRepository.save(event);
         log.info("Assigned photographer {} to event {}", photographer.getId(), saved.getId());
         return saved;
+    }
+
+    @Transactional(readOnly = true)
+    public Map<String, Long> getPhotoPrefixCounts(UUID eventId) {
+            log.info("Get photo prefix counts for {}", eventId);
+        if (eventId == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Event id is required");
+        }
+        if (!eventRepository.existsById(eventId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Event not found");
+        }
+
+        Instant startTime = Instant.now();
+        Map<String, LongAdder> counters = new ConcurrentHashMap<>();
+        try (var keys = photoAssetRepository.streamObjectKeysByEventId(eventId)) {
+            keys.filter(Objects::nonNull)
+                    .map(String::trim)
+                    .filter(key -> !key.isEmpty())
+                    .forEach(key -> accumulatePrefixes(key, counters));
+        }
+        Instant endTime = Instant.now();
+        log.debug("Time taken to retrieve photo prefix counts: {}", Duration.between(startTime, endTime).toMillis());
+        return counters.entrySet()
+                .stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().longValue()));
+    }
+
+    private void accumulatePrefixes(String objectKey, Map<String, LongAdder> counters) {
+        String[] rawSegments = objectKey.split("/");
+        List<String> segments = new ArrayList<>(rawSegments.length);
+        for (String rawSegment : rawSegments) {
+            if (rawSegment == null) {
+                continue;
+            }
+            String segment = rawSegment.trim();
+            if (!segment.isEmpty()) {
+                segments.add(segment);
+            }
+        }
+        if (segments.size() <= 1) {
+            return; // No directory prefixes to count.
+        }
+
+        StringBuilder prefix = new StringBuilder();
+        for (int i = 0; i < segments.size() - 1; i++) {
+            prefix.append(segments.get(i)).append('/');
+            counters.computeIfAbsent(prefix.toString(), key -> new LongAdder()).increment();
+        }
     }
 
     @Transactional
