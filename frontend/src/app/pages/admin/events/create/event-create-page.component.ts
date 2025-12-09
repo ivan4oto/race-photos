@@ -6,8 +6,8 @@ import {
   EligibilityMode,
   EventAdminService,
   EventStatus,
-} from '../../../shared/event-admin.service';
-import { EventOrganizerAdminService, EventOrganizerResponse } from '../../../shared/event-organizer-admin.service';
+} from '../../../../shared/event-admin.service';
+import { EventOrganizerAdminService, EventOrganizerResponse } from '../../../../shared/event-organizer-admin.service';
 
 interface EventFormValue extends CreateEventRequest {}
 

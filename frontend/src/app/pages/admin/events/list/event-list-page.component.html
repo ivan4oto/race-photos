@@ -37,7 +37,7 @@
           <span>Location</span>
           <span>Photographers</span>
           <span>Updated</span>
-          <span></span>
+          <span>Actions</span>
         </div>
         <div class="table-row" *ngFor="let event of events()">
           <div class="stack">
@@ -55,7 +55,10 @@
           </div>
           <span>{{ event.photographerCount }}</span>
           <span>{{ formatDate(event.updatedAt) }}</span>
-          <a class="link" [routerLink]="['/admin/events', event.id]">Edit</a>
+          <div class="actions">
+            <a class="link" [routerLink]="['/admin/events', event.id, 'photos']">Photos</a>
+            <a class="link" [routerLink]="['/admin/events', event.id]">Edit</a>
+          </div>
         </div>
       </div>
 

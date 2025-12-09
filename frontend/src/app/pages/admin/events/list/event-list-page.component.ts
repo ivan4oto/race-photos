@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { EventAdminService, EventSummary } from '../../../shared/event-admin.service';
+import { EventAdminService, EventSummary } from '../../../../shared/event-admin.service';
 
 @Component({
   selector: 'app-event-list-page',

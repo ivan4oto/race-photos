@@ -135,4 +135,9 @@ export class EventAdminService {
     const url = `${this.apiBaseUrl}/admin/events/${eventId}/index-faces`;
     return firstValueFrom(this.http.post<void>(url, {}));
   }
+
+  getPhotoPrefixCounts(eventId: string): Promise<Record<string, number>> {
+    const url = `${this.apiBaseUrl}/admin/events/${eventId}/photo-prefix-counts`;
+    return firstValueFrom(this.http.get<Record<string, number>>(url));
+  }
 }
