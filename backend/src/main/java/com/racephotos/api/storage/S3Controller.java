@@ -71,7 +71,12 @@ public class S3Controller {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        var urls = s3UrlService.createPresignedPutUrls(event.getSlug(), photographer.getSlug(), request.names());
+        var urls = s3UrlService.createPresignedPutUrls(
+                event.getSlug(),
+                photographer.getSlug(),
+                request.names(),
+                request.folderName()
+        );
         return ResponseEntity.ok(S3SignedUrlResponse.from(urls));
     }
 }

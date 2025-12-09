@@ -7,6 +7,7 @@ import { provideApiBaseUrl } from './app/shared/api.config';
 import { environment } from './environments/environment';
 import { apiCredentialsInterceptor } from './app/shared/api-credentials.interceptor';
 import { adminGuard } from './app/shared/auth/admin.guard';
+import { photographerGuard } from './app/shared/auth/photographer.guard';
 
 Amplify.configure({
   Auth: {
@@ -41,6 +42,12 @@ const routes: Routes = [
     path: 'photographer',
     loadComponent: () => import('./app/pages/photographer/photographer-page.component').then(m => m.PhotographerPageComponent),
     title: 'For Photographers — Race Photos'
+  },
+  {
+    path: 'photographer/events',
+    loadComponent: () => import('./app/pages/photographer/events/photographer-events-page.component').then(m => m.PhotographerEventsPageComponent),
+    title: 'My Events — Race Photos',
+    // canMatch: [photographerGuard]
   },
   {
     path: 'photographer/upload/:eventSlug',
