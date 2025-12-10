@@ -29,7 +29,7 @@
         <a routerLink="/admin/events/new" class="btn primary">Create event</a>
       </div>
 
-      <div class="table" *ngIf="!loading() && events().length > 0">
+      <div class="table" *ngIf="!loading() && events().length > 0" (mouseleave)="closeMenu()">
         <div class="table-head">
           <span>Name</span>
           <span>Status</span>
@@ -55,9 +55,15 @@
           </div>
           <span>{{ event.photographerCount }}</span>
           <span>{{ formatDate(event.updatedAt) }}</span>
-          <div class="actions">
-            <a class="link" [routerLink]="['/admin/events', event.id, 'photos']">Photos</a>
-            <a class="link" [routerLink]="['/admin/events', event.id]">Edit</a>
+          <div class="actions menu">
+            <button type="button" class="menu-btn" (click)="toggleMenu(event.id)" aria-label="Open event actions">
+              <span></span><span></span><span></span>
+            </button>
+            <div class="menu-popover" *ngIf="isMenuOpen(event.id)">
+              <a class="menu-link" [routerLink]="['/admin/events', event.id, 'photos']">Photos</a>
+              <a class="menu-link" [routerLink]="['/admin/events', event.id]">Edit</a>
+              <a class="menu-link" [routerLink]="['/admin/events', event.id, 'face-search']">Face search</a>
+            </div>
           </div>
         </div>
       </div>

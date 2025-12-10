@@ -1,0 +1,73 @@
+<section class="page">
+  <div class="container">
+    <header class="hero">
+      <a routerLink="/admin/events" class="crumb">&larr; Events</a>
+      <p class="eyebrow">Admin face search</p>
+      <h1>Search an event library</h1>
+      <p class="lede">
+        Upload a probe selfie to the <code>temp/</code> folder (auto-cleaned) and we will search the event collection using the newest temp object.
+      </p>
+      <div class="probe" *ngIf="probeKey()">Using latest <code>temp/</code> object: <span class="key">{{ probeKey() }}</span></div>
+    </header>
+
+    <div class="panel">
+      <div class="panel-text">
+        <p class="label">Event ID</p>
+        <p class="event-id">{{ eventId() || 'Unknown event' }}</p>
+        <p class="hint">Keep in mind that uploads in <strong>temp/</strong> are ephemeral and the most recent one is always used for matching.</p>
+        <ul class="notes">
+          <li>Images only, max 6MB.</li>
+          <li>Probe lives under <code>temp/</code> until lifecycle deletes it.</li>
+          <li>searchFaces runs against the event collection immediately.</li>
+        </ul>
+      </div>
+      <div class="panel-actions">
+        <label class="upload-tile">
+          <input type="file" accept="image/*" (change)="onFileChange($event)">
+          <div class="title">Choose a probe photo</div>
+          <div class="subtitle">{{ selectedFile()?.name || 'Browse a recent selfie or bib photo' }}</div>
+          <div class="badge">Saved to temp/</div>
+        </label>
+        <div class="action-row">
+          <button class="btn ghost" type="button" (click)="clearSelectedFile()" [disabled]="!selectedFile()">Clear</button>
+          <button class="btn primary" type="button" (click)="runSearch()" [disabled]="!canSubmit()">
+            {{ loading() ? 'Searching…' : 'Upload & search' }}
+          </button>
+        </div>
+        <div class="status error" *ngIf="uploadError()">{{ uploadError() }}</div>
+      </div>
+    </div>
+
+    <div class="status info" *ngIf="loading()">Uploading to <code>temp/</code> and searching the collection…</div>
+    <div class="status error" *ngIf="!loading() && error()">{{ error() }}</div>
+    <div class="status muted" *ngIf="!loading() && !error() && probeKey()">Probe key in use: <code>{{ probeKey() }}</code></div>
+
+    <div class="gallery" *ngIf="hasResults()">
+      <div class="card" *ngFor="let match of matches()">
+        <div class="thumb" (click)="openImage(match.url)">
+          <img [src]="match.url" [alt]="displayName(match)">
+          <span class="pill">{{ similarityLabel(match) }}</span>
+        </div>
+        <div class="meta">
+          <div class="name" [title]="displayName(match)">{{ displayName(match) }}</div>
+          <div class="face-id" [title]="match.faceId">Face ID: {{ match.faceId || 'n/a' }}</div>
+          <div class="confidence" *ngIf="match.confidence !== undefined && match.confidence !== null">
+            Confidence: {{ match.confidence | number:'1.0-1' }}%
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="empty" *ngIf="probeKey() && !hasResults() && !loading() && !error()">
+      <p>No matches were returned for the latest upload under <code>temp/</code>.</p>
+    </div>
+
+    <div class="modal" *ngIf="selectedImage()">
+      <div class="backdrop" (click)="closeModal()"></div>
+      <div class="modal-body">
+        <button class="close" type="button" (click)="closeModal()">&times;</button>
+        <img [src]="selectedImage()!" alt="Preview">
+      </div>
+    </div>
+  </div>
+</section>

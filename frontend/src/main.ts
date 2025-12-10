@@ -137,6 +137,12 @@ const routes: Routes = [
     canMatch: [adminGuard]
   },
   {
+    path: 'admin/events/:eventId/face-search',
+    loadComponent: () => import('./app/pages/admin/face-search/admin-face-search-page.component').then(m => m.AdminFaceSearchPageComponent),
+    title: 'Admin Face Search — Race Photos',
+    canMatch: [adminGuard]
+  },
+  {
     path: 'admin/events/:eventId',
     loadComponent: () => import('./app/pages/admin/events/edit/event-edit-page.component').then(m => m.EventEditPageComponent),
     title: 'Edit Event — Race Photos',
