@@ -14,6 +14,7 @@ export class EventListPageComponent implements OnInit {
   events = signal<EventSummary[]>([]);
   loading = signal(true);
   error = signal<string | null>(null);
+  openMenu = signal<string | null>(null);
 
   constructor(private readonly eventAdminService: EventAdminService) {}
 
@@ -45,5 +46,17 @@ export class EventListPageComponent implements OnInit {
     }
     const date = new Date(value);
     return Number.isNaN(date.getTime()) ? 'TBD' : date.toLocaleString();
+  }
+
+  toggleMenu(eventId: string): void {
+    this.openMenu.set(this.openMenu() === eventId ? null : eventId);
+  }
+
+  closeMenu(): void {
+    this.openMenu.set(null);
+  }
+
+  isMenuOpen(eventId: string): boolean {
+    return this.openMenu() === eventId;
   }
 }
