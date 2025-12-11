@@ -1,14 +1,19 @@
-import {ChangeDetectionStrategy, Component, signal} from "@angular/core";
-import {ICellRendererParams} from "ag-grid-community";
-import {ICellRendererAngularComp} from "ag-grid-angular";
+import { CommonModule } from "@angular/common";
+import { ChangeDetectionStrategy, Component, Inject, signal } from "@angular/core";
+import { HttpClient } from "@angular/common/http";
+import { firstValueFrom } from "rxjs";
+import { ICellRendererParams } from "ag-grid-community";
+import { ICellRendererAngularComp } from "ag-grid-angular";
+import { API_BASE_URL } from "../../../../shared/api.config";
 
 @Component({
     standalone: true,
+    imports: [CommonModule],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
-        <button (click)="buttonClicked()">
-            Delete
-        </button>`,
+            <button>
+                Delete
+            </button>`,
     styles: [`
         button {
             max-height: 95%;
@@ -30,20 +35,12 @@ import {ICellRendererAngularComp} from "ag-grid-angular";
     `]
 })
 export class DeleteButtonComponent implements ICellRendererAngularComp {
-    constructor() {}
-
-    data: any;
-    eventSlug = signal('');
+    constructor(
+    ) {}
 
     agInit(params: ICellRendererParams<any, any, any>): void {
-        this.data = params.data;
-        this.refresh(params);
     }
     refresh(params: ICellRendererParams<any, any, any>): boolean {
-        // this.eventSlug.set(params.data?.slug ?? '');
         return true;
-    }
-    buttonClicked() {
-        console.warn('Not implemented!');
     }
 }
