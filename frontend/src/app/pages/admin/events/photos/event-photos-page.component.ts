@@ -1,10 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, signal } from '@angular/core';
+import {Component, Inject, OnInit, signal} from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { AgGridAngular } from 'ag-grid-angular';
-import { AllCommunityModule, ColDef, Module, themeQuartz } from 'ag-grid-community';
+import {AllCommunityModule, CellClickedEvent, ColDef, Module, themeQuartz} from 'ag-grid-community';
 import { EventAdminService } from '../../../../shared/event-admin.service';
 import {DeleteButtonComponent} from "./delete-button.component";
+import {API_BASE_URL} from "../../../../shared/api.config";
+import {firstValueFrom} from "rxjs";
+import {HttpClient} from "@angular/common/http";
 
 interface PhotoPrefixRow {
   prefix: string;
@@ -36,7 +39,8 @@ export class EventPhotosPageComponent implements OnInit {
       maxWidth: 140,
       sortable: false,
       filter: false,
-      cellRenderer: DeleteButtonComponent
+      cellRenderer: DeleteButtonComponent,
+      onCellClicked: (params) => this.deleteAssetsWithPrefix(params)
     }
   ];
 
@@ -48,8 +52,10 @@ export class EventPhotosPageComponent implements OnInit {
   };
 
   constructor(
+    @Inject(API_BASE_URL) private readonly apiBaseUrl: string,
     private readonly route: ActivatedRoute,
-    private readonly eventAdminService: EventAdminService
+    private readonly eventAdminService: EventAdminService,
+    private readonly http: HttpClient
   ) {}
 
   ngOnInit(): void {
@@ -80,12 +86,35 @@ export class EventPhotosPageComponent implements OnInit {
     }
   }
 
-  deleteAssetsWithPrefix(prefix: string): void {
-    console.log('deleteAssetsWithPrefix not implemented yet for prefix', prefix);
+  async deleteAssetsWithPrefix(params: CellClickedEvent) {
+    console.log('deleteAssetsWithPrefix not implemented yet for prefix');
+    const prefix = params.data.prefix;
+    this.loading.set(true);
+    const url = `${this.apiBaseUrl}/admin/storage/delete-by-prefix`;
+    try {
+        const result = await firstValueFrom(
+            this.http.post<DeleteByPrefixResponse>(url, { prefix })
+        );
+        const deletedS3 = result?.deletedS3Objects ?? 0;
+        const deletedAssets = result?.deletedPhotoAssets ?? 0;
+        console.log('deletedAssets', deletedAssets);
+        console.log('deletedS3Objects', deletedS3);
+    } catch (err: any) {
+        const message = err?.error?.message || 'Failed to delete assets for this prefix.';
+        console.error('Delete by prefix failed', err);
+        this.error.set(message);
+    } finally {
+        this.loading.set(false);
+    }
   }
 
   formatCount(value: any): string {
     const num = Number(value);
     return Number.isNaN(num) ? '0' : num.toLocaleString();
   }
+}
+
+interface DeleteByPrefixResponse {
+  deletedS3Objects: number;
+  deletedPhotoAssets: number;
 }

@@ -157,3 +157,13 @@ h1 {
     transform: rotate(360deg);
   }
 }
+
+.alert.error {
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-size: 14px;
+  border: 1px solid #fecaca;
+  background: #fef2f2;
+  color: #b91c1c;
+  margin: 0 0 14px;
+}

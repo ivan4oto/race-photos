@@ -1,6 +1,7 @@
 package com.racephotos.domain.photo;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,4 +21,8 @@ public interface PhotoAssetRepository extends JpaRepository<PhotoAsset, UUID> {
     @Transactional(readOnly = true)
     @Query("select p.objectKey from PhotoAsset p where p.event.id = :eventId")
     Stream<String> streamObjectKeysByEventId(@Param("eventId") UUID eventId);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Transactional
+    long deleteByObjectKeyStartingWith(String prefix);
 }
