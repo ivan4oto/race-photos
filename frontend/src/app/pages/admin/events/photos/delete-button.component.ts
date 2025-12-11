@@ -1,10 +1,7 @@
 import { CommonModule } from "@angular/common";
-import { ChangeDetectionStrategy, Component, Inject, signal } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
-import { firstValueFrom } from "rxjs";
+import { ChangeDetectionStrategy, Component } from "@angular/core";
 import { ICellRendererParams } from "ag-grid-community";
 import { ICellRendererAngularComp } from "ag-grid-angular";
-import { API_BASE_URL } from "../../../../shared/api.config";
 
 @Component({
     standalone: true,
