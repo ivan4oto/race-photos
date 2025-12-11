@@ -7,7 +7,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
+import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
 
 import java.time.Duration;
@@ -81,6 +83,31 @@ public class S3UrlService {
         }
         log.info("Generated {} presigned URLs", result.size());
         return result;
+    }
+
+    public String createPresignedGetUrl(String key, Duration expiration) {
+        if (bucket == null || bucket.isBlank()) {
+            log.error("S3 bucket not configured (aws.s3.bucket is blank)");
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "S3 bucket is not configured");
+        }
+        if (key == null || key.isBlank()) {
+            return null;
+        }
+        Duration expiry = expiration != null ? expiration : Duration.ofSeconds(expirationSeconds);
+
+        GetObjectRequest get = GetObjectRequest.builder()
+                .bucket(bucket)
+                .key(key)
+                .build();
+
+        GetObjectPresignRequest presign = GetObjectPresignRequest.builder()
+                .signatureDuration(expiry)
+                .getObjectRequest(get)
+                .build();
+
+        return presigner.presignGetObject(presign)
+                .url()
+                .toString();
     }
 
     private String buildBasePath(String eventSlug, String photographerSlug, String folderName) {

@@ -19,11 +19,17 @@ import com.racephotos.service.photographer.dto.PhotographerIdentifierData;
 import com.racephotos.service.common.dto.PricingProfileData;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -37,26 +43,33 @@ import java.util.stream.Collectors;
 public class EventAdminService {
 
     private static final Logger log = LogManager.getLogger(EventAdminService.class);
+    private static final long MAX_COVER_BYTES = 5L * 1024 * 1024;
 
     private final EventRepository eventRepository;
     private final EventOrganizerRepository eventOrganizerRepository;
     private final PhotographerRepository photographerRepository;
     private final PhotoAssetRepository photoAssetRepository;
+    private final S3Client s3Client;
+    private final String bucket;
 
     public EventAdminService(
             EventRepository eventRepository,
             EventOrganizerRepository eventOrganizerRepository,
             PhotographerRepository photographerRepository,
-            PhotoAssetRepository photoAssetRepository
+            PhotoAssetRepository photoAssetRepository,
+            S3Client s3Client,
+            @Value("${aws.s3.bucket:}") String bucket
     ) {
         this.eventRepository = Objects.requireNonNull(eventRepository, "eventRepository");
         this.eventOrganizerRepository = Objects.requireNonNull(eventOrganizerRepository, "eventOrganizerRepository");
         this.photographerRepository = Objects.requireNonNull(photographerRepository, "photographerRepository");
         this.photoAssetRepository = Objects.requireNonNull(photoAssetRepository, "photoAssetRepository");
+        this.s3Client = Objects.requireNonNull(s3Client, "s3Client");
+        this.bucket = bucket;
     }
 
     @Transactional
-    public Event createEvent(CreateEventCommand command) {
+    public Event createEvent(CreateEventCommand command, MultipartFile coverImage) {
         if (command == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Request body is required");
         }
@@ -100,6 +113,11 @@ public class EventAdminService {
 
         try {
             Event saved = eventRepository.save(event);
+            if (coverImage != null && !coverImage.isEmpty()) {
+                String key = uploadCoverImage(saved, coverImage);
+                saved.setCoverImageKey(key);
+                saved = eventRepository.save(saved);
+            }
             log.info("Created event {} with slug '{}'", saved.getId(), saved.getSlug());
             return saved;
         } catch (DataIntegrityViolationException e) {
@@ -271,6 +289,41 @@ public class EventAdminService {
         long indexed = photoAssetRepository.countByEventIdAndIndexStatusIsNotNull(eventId);
         long unindexed = photoAssetRepository.countByEventIdAndIndexStatusIsNull(eventId);
         return new PhotoAssetSummary(indexed, unindexed);
+    }
+
+    private String uploadCoverImage(Event event, MultipartFile file) {
+        if (bucket == null || bucket.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "S3 bucket not configured");
+        }
+        validateCoverFile(file);
+
+        String key = "media/events/" + event.getSlug() + "/cover.jpg";
+        PutObjectRequest put = PutObjectRequest.builder()
+                .bucket(bucket)
+                .key(key)
+                .contentType(file.getContentType())
+                .contentLength(file.getSize())
+                .build();
+        try {
+            s3Client.putObject(put, RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
+            log.info("Uploaded event cover to s3://{}/{}", bucket, key);
+            return key;
+        } catch (SdkException e) {
+            log.error("Failed to upload cover image to s3://{}/{} for event {}", bucket, key, event.getId(), e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to upload cover image", e);
+        } catch (java.io.IOException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to read cover image", e);
+        }
+    }
+
+    private void validateCoverFile(MultipartFile file) {
+        if (file.getSize() > MAX_COVER_BYTES) {
+            throw new ResponseStatusException(HttpStatus.PAYLOAD_TOO_LARGE, "Cover image exceeds 5MB limit");
+        }
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.toLowerCase().startsWith("image/")) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cover image must be an image file");
+        }
     }
 
     private void applyPricing(Event event, PricingProfileData data) {

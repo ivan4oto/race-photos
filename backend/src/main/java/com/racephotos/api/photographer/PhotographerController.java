@@ -3,9 +3,9 @@ package com.racephotos.api.photographer;
 import com.racephotos.api.event.AccessibleEventResponse;
 import com.racephotos.auth.session.SessionUser;
 import com.racephotos.auth.user.Role;
-import com.racephotos.domain.event.Event;
 import com.racephotos.domain.photographer.Photographer;
 import com.racephotos.domain.photographer.PhotographerRepository;
+import com.racephotos.service.event.EventPublicRetrieveService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
@@ -24,9 +23,14 @@ import java.util.Objects;
 public class PhotographerController {
 
     private final PhotographerRepository photographerRepository;
+    private final EventPublicRetrieveService eventPublicRetrieveService;
 
-    public PhotographerController(PhotographerRepository photographerRepository) {
+    public PhotographerController(
+            PhotographerRepository photographerRepository,
+            EventPublicRetrieveService eventPublicRetrieveService
+    ) {
         this.photographerRepository = Objects.requireNonNull(photographerRepository, "photographerRepository");
+        this.eventPublicRetrieveService = Objects.requireNonNull(eventPublicRetrieveService, "eventPublicRetrieveService");
     }
 
     @GetMapping("/events")
@@ -47,10 +51,7 @@ public class PhotographerController {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
 
-        List<AccessibleEventResponse> events = photographer.getEvents().stream()
-                .sorted(Comparator.comparing(Event::getStartTime, Comparator.nullsLast(Comparator.naturalOrder())))
-                .map(AccessibleEventResponse::from)
-                .toList();
+        List<AccessibleEventResponse> events = eventPublicRetrieveService.mapEvents(photographer.getEvents());
 
         return ResponseEntity.ok(events);
     }

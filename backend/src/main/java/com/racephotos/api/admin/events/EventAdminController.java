@@ -14,15 +14,9 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -40,16 +34,17 @@ public class EventAdminController {
         this.eventAdminService = eventAdminService;
     }
 
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> createEvent(
             @AuthenticationPrincipal SessionUser user,
-            @Valid @RequestBody CreateEventRequest request
+            @Valid @RequestPart("event") CreateEventRequest request,
+            @RequestPart(value = "file", required = false) MultipartFile coverImage
     ) {
         // TODO: pass user as author in the future.
         String userEmail = user == null ? "<anonymous>" : user.email();
         log.info("User {} requested event creation with slug '{}'", userEmail, request.slug());
 
-        Event created = eventAdminService.createEvent(request.toCommand());
+        Event created = eventAdminService.createEvent(request.toCommand(), coverImage);
         return ResponseEntity.created(
                         ServletUriComponentsBuilder.fromCurrentRequest()
                                 .path("/{id}")

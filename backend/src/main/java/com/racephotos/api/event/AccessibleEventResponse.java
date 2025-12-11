@@ -12,13 +12,13 @@ public record AccessibleEventResponse(
         OffsetDateTime startDate,
         String coverImageUrl
 ) {
-    public static AccessibleEventResponse from(Event event) {
+    public static AccessibleEventResponse from(Event event, String coverImageUrl) {
         return new AccessibleEventResponse(
                 event.getId(),
                 event.getName(),
                 event.getSlug(),
                 event.getStartTime(),
-                event.getCoverImageKey() // key or URL depending on storage strategy
+                coverImageUrl
         );
     }
 }

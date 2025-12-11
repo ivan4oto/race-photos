@@ -1,10 +1,7 @@
 package com.racephotos.api.event;
 
 import com.racephotos.auth.session.SessionUser;
-import com.racephotos.auth.user.AccessGrantStatus;
-import com.racephotos.auth.user.EventAccessGrantRepository;
-import com.racephotos.domain.event.Event;
-import com.racephotos.domain.event.EventRepository;
+import com.racephotos.service.event.EventPublicRetrieveService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -13,22 +10,17 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
 
 @RestController
 @RequestMapping(path = "/api/events", produces = MediaType.APPLICATION_JSON_VALUE)
 public class EventAccessController {
 
-    private final EventRepository eventRepository;
-    private final EventAccessGrantRepository accessGrantRepository;
+    private final EventPublicRetrieveService eventPublicRetrieveService;
 
-    public EventAccessController(EventRepository eventRepository, EventAccessGrantRepository accessGrantRepository) {
-        this.eventRepository = Objects.requireNonNull(eventRepository, "eventRepository");
-        this.accessGrantRepository = Objects.requireNonNull(accessGrantRepository, "accessGrantRepository");
+    public EventAccessController(EventPublicRetrieveService eventPublicRetrieveService) {
+        this.eventPublicRetrieveService = Objects.requireNonNull(eventPublicRetrieveService, "eventPublicRetrieveService");
     }
 
     @GetMapping
@@ -38,19 +30,7 @@ public class EventAccessController {
         if (user == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        List<UUID> accessibleIds = accessGrantRepository.findByUserIdAndStatus(user.id(), AccessGrantStatus.ACTIVE)
-                .stream()
-                .map(grant -> grant.getEventId())
-                .toList();
-        if (accessibleIds.isEmpty()) {
-            return ResponseEntity.ok(List.of());
-        }
-
-        List<AccessibleEventResponse> responses = eventRepository.findAllById(accessibleIds).stream()
-                .sorted(Comparator.comparing(Event::getStartTime, Comparator.nullsLast(Comparator.naturalOrder())))
-                .map(AccessibleEventResponse::from)
-                .toList();
-
+        List<AccessibleEventResponse> responses = eventPublicRetrieveService.listAccessibleEvents(user.id());
         return ResponseEntity.ok(responses);
     }
 }
